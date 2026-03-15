@@ -2,108 +2,104 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Dual App Desktop & HP Sync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirin Manga Reader (Local)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #202124; font-family: sans-serif; }
-        body { display: flex; flex-direction: column; }
-
-        /* Header & Address Bar */
-        .app-header { background: #35363a; padding: 10px; display: flex; gap: 10px; border-bottom: 1px solid #1c1c1e; flex-shrink: 0; }
+        body { background: #121212; color: #eee; font-family: sans-serif; margin: 0; padding: 0; text-align: center; }
+        .header { background: #1f1f1f; padding: 15px; border-bottom: 2px solid #8ab4f8; position: sticky; top: 0; z-index: 100; }
+        .drop-zone { border: 2px dashed #5f6368; padding: 40px; margin: 20px auto; max-width: 600px; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+        .drop-zone:hover { border-color: #8ab4f8; background: rgba(138, 180, 248, 0.05); }
         
-        .address-bar { flex: 1; display: none; align-items: center; background: #202124; padding: 8px 15px; border-radius: 20px; border: 1px solid #5f6368; animation: fadeIn 0.3s; }
-        .address-bar.active-input { display: flex; }
-        .address-bar input { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-size: 14px; }
-        .address-bar span { color: #8ab4f8; font-size: 11px; font-weight: bold; margin-right: 10px; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Workspace */
-        .workspace { flex-grow: 1; display: flex; background: #000; position: relative; overflow: hidden; gap: 4px; }
-        .pane { flex: 1; background: #fff; display: flex; flex-direction: column; position: relative; transition: 0.3s; border: 4px solid transparent; border-radius: 8px; overflow: hidden; margin: 2px; }
+        #viewer { display: flex; flex-direction: column; align-items: center; gap: 5px; padding-bottom: 50px; }
+        #viewer img { max-width: 100%; height: auto; display: block; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         
-        .pane.active-pane { border: 4px solid #8ab4f8; box-shadow: 0 0 15px rgba(138, 180, 248, 0.4); }
-        iframe { width: 100%; height: 100%; border: none; background: #fff; pointer-events: auto; }
-
-        /* Bottom Nav */
-        .bottom-nav { display: flex; background: #35363a; border-top: 1px solid #1c1c1e; padding-bottom: env(safe-area-inset-bottom); flex-shrink: 0; }
-        .nav-item { flex: 1; color: #9aa0a6; display: flex; align-items: center; justify-content: center; padding: 15px 0; font-size: 14px; font-weight: bold; cursor: pointer; border-right: 1px solid #202124; transition: 0.2s; }
-        .nav-item.active { color: #8ab4f8; background: rgba(138, 180, 248, 0.1); border-bottom: 3px solid #8ab4f8; }
-
-        /* RESPONSIVE: Mobile Mode */
-        @media (max-width: 768px) {
-            .pane { display: none; position: absolute; inset: 0; }
-            .pane.active-pane { display: flex; }
-            .workspace { gap: 0; }
-        }
-
-        .pane::before { content: 'TAB ACTIVE'; position: absolute; top: 10px; right: 10px; background: #8ab4f8; color: #202124; font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 4px; display: none; z-index: 10; }
-        .pane.active-pane::before { display: block; }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #2b2c2f; }
-        ::-webkit-scrollbar-thumb { background: #5f6368; border-radius: 10px; }
+        .loading { display: none; color: #8ab4f8; font-weight: bold; margin: 20px; }
+        input[type="file"] { display: none; }
+        
+        .controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; }
+        .btn { background: #8ab4f8; color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="app-header">
-        <div class="address-bar active-input" id="bar1">
-            <span>TAB 1</span>
-            <input autocomplete="off" id="input1" placeholder="Paste link & press Enter..." type="url">
-        </div>
-        <div class="address-bar" id="bar2">
-            <span>TAB 2</span>
-            <input autocomplete="off" id="input2" placeholder="Paste link & press Enter..." type="url">
-        </div>
+    <div class="header">
+        <h2>📖 Kirin Manga Reader</h2>
+        <p style="font-size: 12px; color: #8b949e;">Local CBZ/ZIP Reader - No Uploads</p>
     </div>
 
-    <div class="workspace">
-        <div class="pane active-pane" id="pane1" onclick="switchTab(1)">
-            <iframe id="frame1" src="about:blank"></iframe>
+    <div id="setup">
+        <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+            <p>Drag & Drop fail <b>.cbz</b> atau <b>.zip</b> di sini</p>
+            <p style="font-size: 13px; color: #8b949e;">Atau klik untuk pilih fail</p>
         </div>
-        <div class="pane" id="pane2" onclick="switchTab(2)">
-            <iframe id="frame2" src="about:blank"></iframe>
-        </div>
+        <input type="file" id="fileInput" accept=".zip,.cbz">
+        <div class="loading" id="status">Sedang memproses...</div>
     </div>
 
-    <div class="bottom-nav">
-        <div class="nav-item active" id="btnTab1" onclick="switchTab(1)">PANEL 1</div>
-        <div class="nav-item" id="btnTab2" onclick="switchTab(2)">PANEL 2</div>
+    <div id="viewer"></div>
+
+    <div class="controls" id="controls" style="display:none">
+        <button class="btn" onclick="location.reload()">TUKAR MANGA</button>
+        <button class="btn" onclick="window.scrollTo(0,0)">KE ATAS</button>
     </div>
 
     <script>
-        function switchTab(n) {
-            document.querySelectorAll('.pane').forEach(p => p.classList.remove('active-pane'));
-            document.getElementById('pane'+n).classList.add('active-pane');
-            
-            document.querySelectorAll('.address-bar').forEach(b => b.classList.remove('active-input'));
-            document.getElementById('bar'+n).classList.add('active-input');
-            
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('btnTab'+n).classList.add('active');
-            
-            document.getElementById('input'+n).focus();
-        }
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const viewer = document.getElementById('viewer');
+        const setup = document.getElementById('setup');
 
-        function bindInput(inputId, frameId) {
-            document.getElementById(inputId).addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    let val = this.value.trim();
-                    if (val) {
-                        if (!/^https?:\/\//i.test(val)) val = 'https://' + val;
-                        document.getElementById(frameId).src = val;
-                        this.blur();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        async function handleFile(file) {
+            if (!file) return;
+            
+            status.style.display = 'block';
+            setup.style.opacity = '0.5';
+            viewer.innerHTML = '';
+
+            try {
+                const zip = await JSZip.loadAsync(file);
+                const files = [];
+
+                // Filter fail gambar sahaja & sort ikut nama
+                zip.forEach((relativePath, zipEntry) => {
+                    if (zipEntry.name.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                        files.push(zipEntry);
                     }
+                });
+
+                // Sort files supaya page tak berterabur
+                files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+
+                if (files.length === 0) throw "Tiada gambar dalam fail ni!";
+
+                // Generate image tags
+                for (let fileObj of files) {
+                    const blob = await fileObj.async("blob");
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(blob);
+                    img.loading = "lazy"; // Biar ringan sikit browser
+                    viewer.appendChild(img);
                 }
-            });
+
+                // Hide setup UI
+                setup.style.display = 'none';
+                document.getElementById('controls').style.display = 'flex';
+
+            } catch (err) {
+                alert("Ralat: " + err);
+                location.reload();
+            }
         }
 
-        window.onload = function() {
-            bindInput('input1', 'frame1');
-            bindInput('input2', 'frame2');
+        // Support Drag & Drop
+        const dropZone = document.querySelector('.drop-zone');
+        dropZone.ondragover = (e) => { e.preventDefault(); };
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            handleFile(e.dataTransfer.files[0]);
         };
     </script>
 </body>

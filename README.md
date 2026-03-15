@@ -1,20 +1,17 @@
-# 📱 Dual App Desktop & HP Sync
+# 📖 Kirin Manga Reader (Local)
 
-Satu aplikasi web ringkas untuk membuka dua laman web secara serentak dalam satu paparan. Sesuai digunakan untuk multitasking atau memantau dua dashboard sekaligus.
+Pembaca manga berasaskan web yang privasi-sentrik. Sesuai untuk membaca koleksi manga peribadi dalam format `.cbz` atau `.zip` tanpa perlu muat naik fail ke pelayan.
 
-## 🔥 Kelebihan
-* **Responsive Design:** Bertindak sebagai *split-screen* di Desktop dan sebagai *tab-switcher* di telefon bimbit.
-* **Header Sync:** Alamat bar akan bertukar secara dinamik mengikut panel yang anda aktifkan.
-* **Lightweight:** Kod murni tanpa sebarang *library* berat.
-
-## ⚠️ Isu "Login" & Keahlian
-Sesetengah laman web (seperti HentaiNexus, Facebook, atau Google) mempunyai polisi keselamatan **SameSite Cookies**. 
-* Ini bermakna akaun anda mungkin **tidak akan terlogin** jika dibuka melalui `iframe`.
-* Ini adalah batasan keselamatan pelayar web (Browser) dan bukan pepijat (bug) pada aplikasi ini.
+## 🚀 Kelebihan
+* **Privacy First:** Semua pemprosesan fail berlaku dalam pelayar anda (client-side). Fail anda tidak dihantar ke internet.
+* **CBZ/ZIP Support:** Membaca fail arkib imej dengan pantas menggunakan `JSZip`.
+* **Smooth Scrolling:** Susunan gambar menegak (Webtoon style) untuk pembacaan yang lebih lancar.
+* **Lightweight:** Tiada database, tiada login, hanya buka fail dan baca.
 
 ## 🛠️ Cara Guna
-1. Masukkan URL pada ruangan "TAB 1" atau "TAB 2".
-2. Tekan **Enter**.
-3. Klik pada Panel 1 atau Panel 2 untuk fokus kepada input bar yang berkaitan.
+1. Jalankan aplikasi melalui GitHub Pages.
+2. Drag & Drop fail manga anda (`.zip` atau `.cbz`) ke dalam kotak yang disediakan.
+3. Selamat membaca!
 
-Dibuat oleh **Lanz**.
+---
+Dibuat dengan 🔥 oleh **Lanz**.

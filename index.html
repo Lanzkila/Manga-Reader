@@ -2,16 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kirin Manga Reader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        body { background: #000; color: #eee; font-family: sans-serif; margin: 0; padding: 0; }
+        /* Reset & Lock Horizontal Scroll */
+        * { box-sizing: border-box; }
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            background: #000; 
+            color: #eee; 
+            font-family: sans-serif; 
+            overflow-x: hidden; /* Kunci skrin dari goyang kiri-kanan */
+            width: 100%;
+        }
         
         /* Header Nipis & Auto-Hide */
         .header { 
-            background: rgba(20, 20, 20, 0.85); 
-            padding: 8px 15px; 
+            background: rgba(20, 20, 20, 0.9); 
+            padding: 10px 15px; 
             border-bottom: 1px solid #333; 
             position: fixed; 
             top: 0; 
@@ -21,7 +31,6 @@
             justify-content: space-between; 
             align-items: center;
             transition: transform 0.3s ease;
-            box-sizing: border-box;
             backdrop-filter: blur(10px);
         }
         .header.hide { transform: translateY(-100%); }
@@ -34,8 +43,8 @@
             align-items: center; 
             justify-content: center; 
             height: 100vh; 
+            width: 100%;
             padding: 20px;
-            box-sizing: border-box;
         }
         .drop-zone { 
             border: 2px dashed #444; 
@@ -44,51 +53,40 @@
             max-width: 400px; 
             border-radius: 15px; 
             text-align: center; 
-            cursor: pointer;
             background: #0a0a0a;
-            transition: 0.3s;
         }
-        .drop-zone:hover { border-color: #8ab4f8; background: #111; }
         
-        /* Viewer Area - FULL WIDTH UNTUK DESKTOP */
+        /* Viewer Area - FIXED 100% WIDTH */
         #viewer { 
             display: flex; 
             flex-direction: column; 
             align-items: center;
             width: 100%;
+            margin: 0;
+            padding: 0;
         }
         
         #viewer img { 
-            width: 100%; /* Desktop akan amik full screen */
+            width: 100vw; /* Guna Viewport Width supaya ngam dengan skrin HP */
+            max-width: 100%; /* Elak dia terkeluar dari container */
             height: auto; 
             display: block;
-            margin: 0; /* Rapat terus, tiada gap antara page */
-        }
-        
-        /* RESPONSIVE: Untuk Mobile Maintain Macam Tadi */
-        @media screen and (max-width: 768px) {
-            #viewer img {
-                width: 100%; /* Kat phone pun full lebar skrin dia */
-            }
+            margin: 0;
+            padding: 0;
+            border: none;
         }
 
         .btn-small { 
             background: #8ab4f8; 
             color: #000; 
             border: none; 
-            padding: 4px 10px; 
-            border-radius: 3px; 
-            font-size: 10px; 
+            padding: 5px 12px; 
+            border-radius: 4px; 
+            font-size: 11px; 
             font-weight: bold; 
-            cursor: pointer; 
         }
         input[type="file"] { display: none; }
-        #status { font-size: 12px; color: #8ab4f8; margin-top: 15px; display: none; font-weight: bold; }
-
-        /* Scrollbar Halus */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        #status { font-size: 12px; color: #8ab4f8; margin-top: 15px; display: none; }
     </style>
 </head>
 <body>
@@ -103,7 +101,7 @@
     <div id="setup">
         <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
             <p style="font-size: 14px; margin: 0;">SELECT MANGA</p>
-            <span style="font-size: 11px; color: #666;">Drag .cbz / .zip here</span>
+            <span style="font-size: 11px; color: #666;">CBZ or ZIP</span>
         </div>
         <input type="file" id="fileInput" accept=".zip,.cbz">
         <div id="status">UNZIPPING...</div>
@@ -119,7 +117,6 @@
         const header = document.getElementById('mainHeader');
         const topControls = document.getElementById('topControls');
 
-        // Logik Auto-Hide Header
         let lastScroll = 0;
         window.addEventListener('scroll', () => {
             const currentScroll = window.pageYOffset;
@@ -136,27 +133,23 @@
         async function handleFile(file) {
             if (!file) return;
             status.style.display = 'block';
-            document.querySelector('.drop-zone').style.display = 'none';
 
             try {
                 const zip = await JSZip.loadAsync(file);
                 const files = [];
 
                 zip.forEach((path, entry) => {
-                    // Filter: Hanya imej & bukan fail sampah Mac
-                    if (entry.name.match(/\.(jpg|jpeg|png|webp|gif)$/i) && !entry.name.includes('__MACOSX') && !entry.name.startsWith('.')) {
+                    if (entry.name.match(/\.(jpg|jpeg|png|webp|gif)$/i) && !entry.name.includes('__MACOSX')) {
                         files.push(entry);
                     }
                 });
 
-                // Sort: Sangat penting supaya page tak lompat (1, 10, 2 jadi 1, 2, 10)
-                files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+                files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
 
                 for (let fileObj of files) {
                     const blob = await fileObj.async("blob");
                     const img = document.createElement('img');
                     img.src = URL.createObjectURL(blob);
-                    img.loading = "lazy";
                     viewer.appendChild(img);
                 }
 
@@ -165,16 +158,10 @@
                 window.scrollTo(0, 0);
 
             } catch (err) {
-                alert("Error reading file: " + err);
+                alert("Error: " + err);
                 location.reload();
             }
         }
-
-        // Drag & Drop
-        const dropZone = document.querySelector('.drop-zone');
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#8ab4f8'; };
-        dropZone.ondragleave = () => { dropZone.style.borderColor = '#444'; };
-        dropZone.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
     </script>
 </body>
 </html>

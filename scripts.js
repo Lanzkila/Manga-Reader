@@ -22,9 +22,11 @@ let totalPages = 0;
 let activePageIndex = 0;
 let currentWidth = 900;
 let activeFile = null;
+let timerInterval = null;
 
-// Paparkan senarai recent read semasa mula-mula buka laman
+// Paparkan senarai recent read semasa mula-mula buka laman & mulakan jam
 loadRecentReads();
+startTimerInterval();
 
 let lastScroll = 0;
 window.addEventListener('scroll', () => {
@@ -100,15 +102,21 @@ async function handleFile(file) {
     }
 }
 
-// Fungsi Mengurus Recent Read
+// Simpan Rekod Berserta Timestamp Asal
 function saveRecentRead(fileName, thumbUrl, pages) {
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
+    const existing = recents.find(item => item.name === fileName);
+    
+    // Kekalkan timestamp lama jika fail sudah ada, jika baharu guna masa semasa
+    const timestamp = existing ? existing.time : Date.now();
+
     recents = recents.filter(item => item.name !== fileName);
     
     recents.unshift({
         name: fileName,
         thumb: thumbUrl,
-        pages: pages
+        pages: pages,
+        time: timestamp
     });
 
     if (recents.length > 5) {
@@ -119,21 +127,48 @@ function saveRecentRead(fileName, thumbUrl, pages) {
     loadRecentReads();
 }
 
+// Fungsi Mengira Format Masa Terperinci (Tahun, Bulan, Hari, Jam, Minit, Saat)
+function formatTimeAgo(timestamp) {
+    const now = Date.now();
+    const elapsedSeconds = Math.floor((now - timestamp) / 1000);
+
+    if (elapsedSeconds < 5) return "Baru saja";
+
+    const years = Math.floor(elapsedSeconds / 31536000);
+    const months = Math.floor((elapsedSeconds % 31536000) / 2592000);
+    const days = Math.floor((elapsedSeconds % 2592000) / 86400);
+    const hours = Math.floor((elapsedSeconds % 86400) / 3600);
+    const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+    const seconds = elapsedSeconds % 60;
+
+    let parts = [];
+    if (years > 0) parts.push(`${years} tahun`);
+    if (months > 0) parts.push(`${months} bulan`);
+    if (days > 0) parts.push(`${days} hari`);
+    if (hours > 0) parts.push(`${hours} jam`);
+    if (minutes > 0) parts.push(`${minutes} minit`);
+    parts.push(`${seconds} saat`);
+
+    return parts.join(', ') + ' lalu';
+}
+
 function loadRecentReads() {
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
     if (recents.length > 0) {
         recentContainer.style.display = 'block';
         recentList.innerHTML = '';
         
-        recents.forEach((itemData, index) => {
+        recents.forEach((itemData) => {
             const item = document.createElement('div');
             item.className = 'recent-item';
             
+            const timeAgoString = formatTimeAgo(itemData.time);
+
             item.innerHTML = `
                 <img src="${itemData.thumb || ''}" class="recent-thumb" alt="Cover">
                 <div class="recent-info">
                     <span class="recent-name" title="${itemData.name}">${itemData.name}</span>
-                    <span class="recent-meta">${itemData.pages} Halaman</span>
+                    <span class="recent-meta">${itemData.pages} Halaman • <span class="time-counter" data-time="${itemData.time}">${timeAgoString}</span></span>
                 </div>
                 <button class="recent-delete-btn" title="Padam item ini" onclick="deleteRecentItem(event, '${itemData.name}')">&times;</button>
             `;
@@ -145,16 +180,26 @@ function loadRecentReads() {
     }
 }
 
-// Fungsi Padam Satu Item
+// Gelung untuk kemas kini paparan masa setiap 1 saat secara langsung
+function startTimerInterval() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const timeElements = document.querySelectorAll('.time-counter');
+        timeElements.forEach(el => {
+            const timestamp = parseInt(el.getAttribute('data-time'));
+            el.innerText = formatTimeAgo(timestamp);
+        });
+    }, 1000);
+}
+
 function deleteRecentItem(event, fileName) {
-    event.stopPropagation(); // Elak daripada mencetuskan event lain
+    event.stopPropagation();
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
     recents = recents.filter(item => item.name !== fileName);
     localStorage.setItem('kirin_recents', JSON.stringify(recents));
     loadRecentReads();
 }
 
-// Fungsi Padam Semua
 clearAllBtn.onclick = () => {
     if (confirm("Padam semua senarai bacaan terkini?")) {
         localStorage.removeItem('kirin_recents');

@@ -207,3 +207,52 @@ input[type="file"] { display: none; }
 
 body::-webkit-scrollbar { width: 0; height: 0; }
 .no-display { display: none !important; }
+
+/* TAMBAHAN GAYA RECENT READ DENGAN THUMBNAIL */
+.recent-item {
+    display: flex;
+    align-items: center;
+    background: #111;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #ccc;
+    border: 1px solid #222;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: left;
+    box-sizing: border-box;
+    width: 100%;
+}
+.recent-item:hover {
+    border-color: #8ab4f8;
+    background: #161616;
+}
+.recent-thumb {
+    width: 35px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 12px;
+    background: #000;
+    flex-shrink: 0;
+}
+.recent-info {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.recent-name {
+    font-weight: 600;
+    color: #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.recent-meta {
+    font-size: 10px;
+    color: #777;
+}

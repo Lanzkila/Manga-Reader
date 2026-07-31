@@ -24,7 +24,6 @@ let currentWidth = 900;
 let activeFile = null;
 let timerInterval = null;
 
-// Paparkan senarai recent read semasa mula-mula buka laman & mulakan jam
 loadRecentReads();
 startTimerInterval();
 
@@ -102,13 +101,11 @@ async function handleFile(file) {
     }
 }
 
-// Simpan Rekod Berserta Timestamp Asal
 function saveRecentRead(fileName, thumbUrl, pages) {
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
     const existing = recents.find(item => item.name === fileName);
     
-    // Kekalkan timestamp lama jika fail sudah ada, jika baharu guna masa semasa
-    const timestamp = existing ? existing.time : Date.now();
+    const timestamp = existing && existing.time ? existing.time : Date.now();
 
     recents = recents.filter(item => item.name !== fileName);
     
@@ -127,8 +124,8 @@ function saveRecentRead(fileName, thumbUrl, pages) {
     loadRecentReads();
 }
 
-// Fungsi Mengira Format Masa Terperinci (Tahun, Bulan, Hari, Jam, Minit, Saat)
 function formatTimeAgo(timestamp) {
+    if (!timestamp) return "Baru saja";
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - timestamp) / 1000);
 
@@ -162,6 +159,11 @@ function loadRecentReads() {
             const item = document.createElement('div');
             item.className = 'recent-item';
             
+            // Jika rekod lama tiada masa, tetapkan masa semasa
+            if (!itemData.time) {
+                itemData.time = Date.now();
+            }
+
             const timeAgoString = formatTimeAgo(itemData.time);
 
             item.innerHTML = `
@@ -180,7 +182,6 @@ function loadRecentReads() {
     }
 }
 
-// Gelung untuk kemas kini paparan masa setiap 1 saat secara langsung
 function startTimerInterval() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {

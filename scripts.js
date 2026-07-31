@@ -5,7 +5,6 @@ const setup = document.getElementById('setup');
 const header = document.getElementById('mainHeader');
 const topControls = document.getElementById('topControls');
 const pageCounter = document.getElementById('pageCounter');
-const appFooter = document.getElementById('appFooter');
 
 const modeListBtn = document.getElementById('modeListBtn');
 const modeBookBtn = document.getElementById('modeBookBtn');
@@ -42,31 +41,24 @@ async function handleFile(file) {
         const zip = await JSZip.loadAsync(file);
         const files = [];
 
-        // Penambahbaikan: Semak laluan dan pastikan ia bukan direktori kosong
-        zip.forEach((relativePath, entry) => {
-            if (!entry.dir) {
-                const lowerName = entry.name.toLowerCase();
-                // Sokongan penuh untuk format imej biasa dalam arkib zip/cbz
-                if ((lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || 
-                     lowerName.endsWith('.png') || lowerName.endsWith('.webp') || 
-                     lowerName.endsWith('.gif')) && !entry.name.includes('__MACOSX')) {
-                    files.push(entry);
-                }
+        zip.forEach((path, entry) => {
+            if (!entry.dir && entry.name.match(/\.(jpg|jpeg|png|webp|gif)$/i) && !entry.name.includes('__MACOSX')) {
+                files.push(entry);
             }
         });
 
         if (files.length === 0) {
-            alert("Tiada fail imej ditemui di dalam arkib ini!");
+            alert("Tiada fail imej sah ditemui di dalam arkib ini!");
             location.reload();
             return;
         }
 
-        // Susun nama fail mengikut urutan nombor yang betul
         files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
 
         totalPages = files.length;
         updatePageIndicator();
 
+        viewer.innerHTML = '';
         let index = 0;
         for (let fileObj of files) {
             const blob = await fileObj.async("blob");
@@ -80,12 +72,11 @@ async function handleFile(file) {
         }
 
         setup.style.display = 'none';
-        if (appFooter) appFooter.style.display = 'none'; 
-        topControls.style.display = 'flex'; 
+        topControls.style.display = 'flex';
         window.scrollTo(0, 0);
 
     } catch (err) {
-        alert("Gagal membuka fail zip/cbz. Pastikan ia fail arkib yang sah: " + err);
+        alert("Fail rosak atau tidak disokong: " + err);
         location.reload();
     }
 }
@@ -122,7 +113,6 @@ modeBookBtn.onclick = () => {
     
     navPrev.style.display = 'block';
     navNext.style.display = 'block';
-    
     header.classList.remove('hide'); 
     
     const images = viewer.querySelectorAll('img');

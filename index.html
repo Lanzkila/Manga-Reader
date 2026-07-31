@@ -1,78 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ms">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kirin Manga Reader</title>
-    <!-- Pautan JSZip -->
+    <title>Kirin Reader</title>
+    
+    <!-- Pustaka JSZip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- Pautan CSS Luaran -->
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Fail Gaya CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class='header' id='mainHeader'>
+    <div class="header" id="mainHeader">
         <h2>Kirin Reader</h2>
-        <div class='controls-wrapper' id='topControls' style='display:none'>
-            <div class='btn-group' id='zoomControls'>
-                <button class='btn-toggle' id='zoomOut'>W -</button>
-                <button class='btn-toggle' id='zoomIn'>W +</button>
+        <div class="controls-wrapper" id="topControls" style="display:none">
+            <div class="btn-group" id="zoomControls">
+                <button class="btn-toggle" id="zoomOut">W -</button>
+                <button class="btn-toggle" id="zoomIn">W +</button>
             </div>
             
-            <div class='btn-group'>
-                <button class='btn-toggle active' id='modeListBtn'>SCROLL</button>
-                <button class='btn-toggle' id='modeBookBtn'>BOOK (RTL)</button>
+            <div class="btn-group">
+                <button class="btn-toggle active" id="modeListBtn">SCROLL</button>
+                <button class="btn-toggle" id="modeBookBtn">BOOK (RTL)</button>
             </div>
 
-            <span class='page-info' id='pageCounter'>0 Pgs</span>
-            <button class='btn-small' onclick='location.reload()'>NEW</button>
+            <span class="page-info" id="pageCounter">0 Pgs</span>
+            <button class="btn-small" onclick="location.reload()">NEW</button>
         </div>
     </div>
 
-    <div class='manga-nav prev' id='navPrev'></div>
-    <div class='manga-nav next' id='navNext'></div>
+    <div class="manga-nav prev" id="navPrev"></div>
+    <div class="manga-nav next" id="navNext"></div>
 
-    <div id='setup'>
-        <div class='drop-zone' id='dropArea' onclick='document.getElementById("fileInput").click()'>
-            <p style='font-size: 18px;'>Drop <b>.cbz</b> or <b>.zip</b></p>
-            <span style='font-size: 12px; color: #666;'>Klik untuk pilih fail manga kau</span>
+    <div id="setup">
+        <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
+            <p style="font-size: 18px;">Drop <b>.cbz</b> or <b>.zip</b></p>
+            <span style="font-size: 12px; color: #666;">Klik untuk pilih fail manga kau</span>
         </div>
-        <input id='fileInput' type='file'/>
-        <div id='status'>Memproses halaman manga...</div>
-
-        <!-- SEKSYEN RECENT READ (MELINTANG) -->
-        <div class='recent-container' id='recentContainer'>
-            <h3>Recent Read</h3>
-            <div class='recent-scroll' id='recentScroll'>
-                <!-- Contoh kad recent read (boleh dikawal melalui JS/LocalStorage nanti) -->
-                <div class='recent-card'>
-                    <div class='recent-thumb'>Manga 1</div>
-                    <span>Chapter 1</span>
-                </div>
-                <div class='recent-card'>
-                    <div class='recent-thumb'>Manga 2</div>
-                    <span>Chapter 5</span>
-                </div>
-                <div class='recent-card'>
-                    <div class='recent-thumb'>Manga 3</div>
-                    <span>Chapter 12</span>
-                </div>
-                <div class='recent-card'>
-                    <div class='recent-thumb'>Manga 4</div>
-                    <span>Oneshot</span>
-                </div>
-            </div>
-        </div>
+        <input id="fileInput" type="file">
+        <div id="status">Memproses halaman manga...</div>
     </div>
 
-    <div id='viewer'></div>
+    <div id="viewer"></div>
 
-    <!-- FOOTER MENGIKUT TAHUN -->
-    <footer id='appFooter'>
-        &copy; 2026 Kirin Reader. All rights reserved.
-    </footer>
-
-    <!-- Pautan ke Fail JavaScript -->
+    <!-- Fail Logik JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>

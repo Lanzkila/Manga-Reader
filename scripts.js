@@ -15,6 +15,7 @@ const zoomOut = document.getElementById('zoomOut');
 
 const recentContainer = document.getElementById('recentContainer');
 const recentList = document.getElementById('recentList');
+const clearAllBtn = document.getElementById('clearAllBtn');
 
 let currentMode = 'list'; 
 let totalPages = 0;
@@ -87,7 +88,6 @@ async function handleFile(file) {
             index++;
         }
 
-        // Simpan ke Recent Read berserta thumbnail halaman pertama (Had maksimum: 5 fail)
         saveRecentRead(file.name, firstBlobUrl, totalPages);
 
         setup.style.display = 'none';
@@ -100,21 +100,17 @@ async function handleFile(file) {
     }
 }
 
-// Fungsi Mengurus Recent Read dengan Thumbnail & Had
+// Fungsi Mengurus Recent Read
 function saveRecentRead(fileName, thumbUrl, pages) {
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
-    
-    // Buang rekod lama dengan nama sama supaya ia dikemas kini ke atas
     recents = recents.filter(item => item.name !== fileName);
     
-    // Masukkan rekod baharu di baris teratas
     recents.unshift({
         name: fileName,
         thumb: thumbUrl,
         pages: pages
     });
 
-    // Hadkan kepada 5 fail terkini sahaja
     if (recents.length > 5) {
         recents.pop();
     }
@@ -129,25 +125,43 @@ function loadRecentReads() {
         recentContainer.style.display = 'block';
         recentList.innerHTML = '';
         
-        recents.forEach(itemData => {
+        recents.forEach((itemData, index) => {
             const item = document.createElement('div');
             item.className = 'recent-item';
             
-            // Templat HTML untuk paparan thumbnail dan info
             item.innerHTML = `
                 <img src="${itemData.thumb || ''}" class="recent-thumb" alt="Cover">
                 <div class="recent-info">
                     <span class="recent-name" title="${itemData.name}">${itemData.name}</span>
                     <span class="recent-meta">${itemData.pages} Halaman</span>
                 </div>
+                <button class="recent-delete-btn" title="Padam item ini" onclick="deleteRecentItem(event, '${itemData.name}')">&times;</button>
             `;
             
-            // Nota: Fail fizikal tidak boleh dibuka automatik semula tanpa pilih fail baru kerana sekatan keselamatan pelayar (browser), 
-            // tapi butang ini boleh direka untuk ingatkan pengguna fail mana yang dibaca sebelum ini.
             recentList.appendChild(item);
         });
+    } else {
+        recentContainer.style.display = 'none';
     }
 }
+
+// Fungsi Padam Satu Item
+function deleteRecentItem(event, fileName) {
+    event.stopPropagation(); // Elak daripada mencetuskan event lain
+    let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
+    recents = recents.filter(item => item.name !== fileName);
+    localStorage.setItem('kirin_recents', JSON.stringify(recents));
+    loadRecentReads();
+}
+
+// Fungsi Padam Semua
+clearAllBtn.onclick = () => {
+    if (confirm("Padam semua senarai bacaan terkini?")) {
+        localStorage.removeItem('kirin_recents');
+        recentContainer.style.display = 'none';
+        recentList.innerHTML = '';
+    }
+};
 
 function updatePageIndicator() {
     if (currentMode === 'list') {

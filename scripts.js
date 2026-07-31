@@ -328,3 +328,5 @@ const dropArea = document.getElementById('dropArea');
 dropArea.ondragover = (e) => { e.preventDefault(); dropArea.style.borderColor = "#8ab4f8"; };
 dropArea.ondragleave = () => { dropArea.style.borderColor = "#333"; };
 dropArea.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
+
+document.getElementById('currentYear').innerText = new Date().getFullYear();

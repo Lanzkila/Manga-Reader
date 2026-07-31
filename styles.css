@@ -118,13 +118,19 @@ input[type="file"] { display: none; }
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+/* FOOTER TAHUN */
 .site-footer {
     text-align: center;
-    padding: 20px;
+    padding: 15px;
     font-size: 11px;
     color: #555;
     border-top: 1px solid #111;
     background: #050505;
+    width: 100%;
+    box-sizing: border-box;
+}
+.site-footer span {
+    color: #8ab4f8;
 }
 
 /* VIEW MODE */

@@ -20,6 +20,7 @@ let currentMode = 'list';
 let totalPages = 0;
 let activePageIndex = 0;
 let currentWidth = 900;
+let activeFile = null;
 
 // Paparkan senarai recent read semasa mula-mula buka laman
 loadRecentReads();
@@ -40,11 +41,9 @@ fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
 async function handleFile(file) {
     if (!file) return;
+    activeFile = file;
     status.style.display = 'block';
     status.innerText = "Sila tunggu, Kirin sedang memproses fail...";
-
-    // Simpan nama fail ke dalam localStorage (Recent Read)
-    saveRecentRead(file.name);
 
     try {
         const zip = await JSZip.loadAsync(file);
@@ -69,16 +68,27 @@ async function handleFile(file) {
 
         viewer.innerHTML = '';
         let index = 0;
+        let firstBlobUrl = "";
+
         for (let fileObj of files) {
             const blob = await fileObj.async("blob");
+            const blobUrl = URL.createObjectURL(blob);
+            
+            if (index === 0) {
+                firstBlobUrl = blobUrl;
+            }
+
             const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
+            img.src = blobUrl;
             img.loading = "lazy"; 
             img.setAttribute('data-index', index);
             if (index === 0) img.classList.add('active');
             viewer.appendChild(img);
             index++;
         }
+
+        // Simpan ke Recent Read berserta thumbnail halaman pertama (Had maksimum: 5 fail)
+        saveRecentRead(file.name, firstBlobUrl, totalPages);
 
         setup.style.display = 'none';
         topControls.style.display = 'flex';
@@ -90,14 +100,27 @@ async function handleFile(file) {
     }
 }
 
-// Fungsi Mengurus Recent Read
-function saveRecentRead(fileName) {
+// Fungsi Mengurus Recent Read dengan Thumbnail & Had
+function saveRecentRead(fileName, thumbUrl, pages) {
     let recents = JSON.parse(localStorage.getItem('kirin_recents')) || [];
-    // Buang jika sudah ada dalam senarai supaya ia naik ke atas
-    recents = recents.filter(name => name !== fileName);
-    recents.unshift(fileName); // Masukkan di baris teratas
-    if (recents.length > 5) recents.pop(); // Hadkan kepada 5 fail terkini sahaja
+    
+    // Buang rekod lama dengan nama sama supaya ia dikemas kini ke atas
+    recents = recents.filter(item => item.name !== fileName);
+    
+    // Masukkan rekod baharu di baris teratas
+    recents.unshift({
+        name: fileName,
+        thumb: thumbUrl,
+        pages: pages
+    });
+
+    // Hadkan kepada 5 fail terkini sahaja
+    if (recents.length > 5) {
+        recents.pop();
+    }
+
     localStorage.setItem('kirin_recents', JSON.stringify(recents));
+    loadRecentReads();
 }
 
 function loadRecentReads() {
@@ -105,11 +128,22 @@ function loadRecentReads() {
     if (recents.length > 0) {
         recentContainer.style.display = 'block';
         recentList.innerHTML = '';
-        recents.forEach(name => {
+        
+        recents.forEach(itemData => {
             const item = document.createElement('div');
             item.className = 'recent-item';
-            item.innerText = name;
-            item.style.cssText = "background: #111; padding: 8px 12px; margin-bottom: 5px; border-radius: 6px; font-size: 12px; color: #ccc; border: 1px solid #222;";
+            
+            // Templat HTML untuk paparan thumbnail dan info
+            item.innerHTML = `
+                <img src="${itemData.thumb || ''}" class="recent-thumb" alt="Cover">
+                <div class="recent-info">
+                    <span class="recent-name" title="${itemData.name}">${itemData.name}</span>
+                    <span class="recent-meta">${itemData.pages} Halaman</span>
+                </div>
+            `;
+            
+            // Nota: Fail fizikal tidak boleh dibuka automatik semula tanpa pilih fail baru kerana sekatan keselamatan pelayar (browser), 
+            // tapi butang ini boleh direka untuk ingatkan pengguna fail mana yang dibaca sebelum ini.
             recentList.appendChild(item);
         });
     }

@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kirin Manga Reader</title>
+    <!-- Pautan JSZip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-     <link rel="stylesheet" href="styles.css">
+    <!-- Pautan CSS Luaran -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -27,19 +29,50 @@
         </div>
     </div>
 
-    <div class='manga-nav prev' id='navPrev'/>
-    <div class='manga-nav next' id='navNext'/>
+    <div class='manga-nav prev' id='navPrev'></div>
+    <div class='manga-nav next' id='navNext'></div>
 
     <div id='setup'>
-        <div class='drop-zone' id='dropArea' onclick='document.getElementById(&quot;fileInput&quot;).click()'>
+        <div class='drop-zone' id='dropArea' onclick='document.getElementById("fileInput").click()'>
             <p style='font-size: 18px;'>Drop <b>.cbz</b> or <b>.zip</b></p>
             <span style='font-size: 12px; color: #666;'>Klik untuk pilih fail manga kau</span>
         </div>
         <input id='fileInput' type='file'/>
         <div id='status'>Memproses halaman manga...</div>
+
+        <!-- SEKSYEN RECENT READ (MELINTANG) -->
+        <div class='recent-container' id='recentContainer'>
+            <h3>Recent Read</h3>
+            <div class='recent-scroll' id='recentScroll'>
+                <!-- Contoh kad recent read (boleh dikawal melalui JS/LocalStorage nanti) -->
+                <div class='recent-card'>
+                    <div class='recent-thumb'>Manga 1</div>
+                    <span>Chapter 1</span>
+                </div>
+                <div class='recent-card'>
+                    <div class='recent-thumb'>Manga 2</div>
+                    <span>Chapter 5</span>
+                </div>
+                <div class='recent-card'>
+                    <div class='recent-thumb'>Manga 3</div>
+                    <span>Chapter 12</span>
+                </div>
+                <div class='recent-card'>
+                    <div class='recent-thumb'>Manga 4</div>
+                    <span>Oneshot</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id='viewer'/>
-   <script src="scripts.js"></script>
+    <div id='viewer'></div>
+
+    <!-- FOOTER MENGIKUT TAHUN -->
+    <footer id='appFooter'>
+        &copy; 2026 Kirin Reader. All rights reserved.
+    </footer>
+
+    <!-- Pautan ke Fail JavaScript -->
+    <script src="script.js"></script>
 </body>
 </html>

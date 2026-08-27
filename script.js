@@ -1209,7 +1209,7 @@
             stopAutoScroll();
             closePanels();
             pageSelector.classList.remove('active');
-            viewer.style.display = 'none';
+            viewer.style.setProperty('display', 'none', 'important');
             setup.style.display = 'flex';
             topControls.style.display = 'none';
             readerProgress.classList.remove('active');
@@ -1220,7 +1220,7 @@
 
         function v3EnterReader() {
             setup.style.display = 'none';
-            viewer.style.display = 'flex';
+            viewer.style.setProperty('display', 'flex', 'important');
             topControls.style.display = 'flex';
             readerProgress.classList.add('active');
             v3UpdateSelector();
@@ -1697,7 +1697,7 @@
         setLibraryTab('recent');
 
         v3LoadPrefs(); v3ApplyPrefs(); v3RenderLinkHistory();
-        viewer.style.display = 'none';
+        viewer.style.setProperty('display', 'none', 'important');
         setup.style.display = 'flex';
 
         const dropArea = document.getElementById('dropArea');
@@ -2259,7 +2259,7 @@
                 status.textContent = `Gagal membuka fail: ${err.message}`;
                 if (!totalPages) {
                     setup.style.display = 'flex';
-                    viewer.style.display = 'none';
+                    viewer.style.setProperty('display', 'none', 'important');
                 }
             }
         };

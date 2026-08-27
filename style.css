@@ -1,4 +1,4 @@
-        :root {
+:root {
             --manga-max-width: 900px;
         }
 
@@ -4232,5 +4232,165 @@
             }
         }
 
+
+        /* =====================================================
+           v6.2.1 BOOK RTL/LTR FREEZE FIX
+           Do not place a full-screen interactive layer above Book mode.
+           Existing Book nav zones are reused for touch navigation.
+           ===================================================== */
+
+        .touch-zone-layer,
+        .touch-zone-layer.active {
+            display: none !important;
+            pointer-events: none !important;
+        }
+
+        /* Book nav remains the only side-click layer. */
+        #viewer.book-mode ~ .manga-nav,
+        .manga-nav {
+            touch-action: manipulation;
+        }
+
+        body.v621-book-switching .manga-nav {
+            pointer-events: none !important;
+        }
+
+        /* Prevent accidental selection/drag during page direction change. */
+        #viewer.book-mode {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #viewer.book-mode img {
+            -webkit-user-drag: none;
+        }
+
+        @media (max-width: 768px), (pointer: coarse) {
+            .manga-nav {
+                width: var(--v6-touch-side);
+            }
+
+            /* The middle stays free: no invisible button covers it. */
+            #viewer.book-mode {
+                touch-action: pan-y pinch-zoom;
+            }
+        }
+
+
+        /* =====================================================
+           v6.2.2 — CLEAN BOOK ENGINE
+           Final canonical Book layout, above all older patches.
+           ===================================================== */
+
+        #viewer.book-mode {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            min-height: 100vh;
+            padding: 60px 0 8px !important;
+            margin: 0;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-wrap: nowrap !important;
+            background: var(--reader-bg);
+        }
+
+        #viewer.book-mode img[data-index] {
+            display: none !important;
+            flex: 0 1 auto;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100vw !important;
+            max-height: calc(100vh - 72px) !important;
+            margin: 0 !important;
+            object-fit: contain !important;
+        }
+
+        #viewer.book-mode img[data-index].active {
+            display: block !important;
+        }
+
+        #viewer.book-mode.double-page img[data-index].active,
+        #viewer.book-mode.double-page img[data-index].active-pair {
+            display: block !important;
+            width: auto !important;
+            height: auto !important;
+            max-width: calc(50vw - 4px) !important;
+            max-height: calc(100vh - 72px) !important;
+            object-fit: contain !important;
+        }
+
+        #viewer.book-mode.direction-rtl {
+            direction: rtl !important;
+            flex-direction: row !important;
+        }
+
+        #viewer.book-mode.direction-ltr {
+            direction: ltr !important;
+            flex-direction: row !important;
+        }
+
+        .manga-nav {
+            background: transparent !important;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body.v622-book-active .manga-nav {
+            display: block !important;
+        }
+
+        /* Old full-screen touch layer stays retired. */
+        .touch-zone-layer,
+        .touch-zone-layer.active {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        @media (max-width: 768px) {
+            #viewer.book-mode {
+                padding-top: 58px !important;
+                padding-bottom: 5px !important;
+            }
+
+            #viewer.book-mode img[data-index] {
+                max-height: calc(100vh - 68px) !important;
+            }
+
+            #viewer.book-mode.double-page img[data-index].active,
+            #viewer.book-mode.double-page img[data-index].active-pair {
+                max-width: 50vw !important;
+                max-height: calc(100vh - 68px) !important;
+            }
+        }
+
+
+        /* =====================================================
+           v6.2.3 — PAGE SELECTOR DEFAULT CLOSED
+           Sidebar never auto-expands when entering the reader.
+           ===================================================== */
+
+        /* Left selector already slides left; make bottom selector collapse too. */
+        .page-selector.position-bottom.collapsed {
+            transform: translateY(100%) !important;
+        }
+
+        /* Keep the handle accessible while bottom selector is collapsed. */
+        .page-selector.position-bottom.collapsed .page-selector-handle {
+            transform: translateY(-100%);
+        }
+
+        .page-selector-handle {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .page-selector.collapsed .page-selector-handle {
+            box-shadow: 3px 3px 14px rgba(0,0,0,.35);
+        }
+
         .no-display { display: none !important; }
-    

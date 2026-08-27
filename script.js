@@ -1,4 +1,4 @@
-        /* KIRIN READER ADDON PACK v2 */
+/* KIRIN READER ADDON PACK v2 */
         document.getElementById('currentYear').innerText = new Date().getFullYear();
 
         const fileInput = document.getElementById('fileInput');
@@ -6249,6 +6249,1049 @@
         }
 
         v81InitialHomepageRender();
+
+
+        /* =====================================================
+           v6.2.1 — SAFE BOOK MODE / RTL-LTR SWITCH
+           ===================================================== */
+
+        let v621ModeSwitching = false;
+        let v621DirectionFrame = 0;
+        let v621CenterPointerStart = null;
+
+        /* Full-screen Touch Zone overlay is retired.
+           The existing left/right .manga-nav elements are now the touch
+           zones, so nothing transparent can cover the entire reader. */
+        v6RefreshTouchZones = function() {
+            const bookActive =
+                totalPages > 0 &&
+                setup.style.display === 'none' &&
+                currentMode === 'book';
+
+            touchZoneLayer.classList.remove('active');
+            touchZoneLayer.style.display = 'none';
+            touchZoneLayer.style.pointerEvents = 'none';
+
+            const side = clamp(Number(v6TouchSide || 31), 20, 42);
+            document.documentElement.style.setProperty(
+                '--v6-touch-side',
+                `${side}%`
+            );
+
+            if (bookActive && v6TouchEnabled) {
+                navPrev.style.width = `${side}%`;
+                navNext.style.width = `${side}%`;
+                navPrev.style.pointerEvents = 'auto';
+                navNext.style.pointerEvents = 'auto';
+            } else if (bookActive) {
+                /* Touch Zones OFF: keep the classic smaller Book click area. */
+                navPrev.style.width = '24%';
+                navNext.style.width = '24%';
+                navPrev.style.pointerEvents = 'auto';
+                navNext.style.pointerEvents = 'auto';
+            } else {
+                navPrev.style.pointerEvents = '';
+                navNext.style.pointerEvents = '';
+            }
+        };
+
+        /* Safe direction setter.
+           It does not call setMode(), avoiding mode/profile/render loops. */
+        setDirection = function(direction) {
+            const nextDirection = direction === 'ltr' ? 'ltr' : 'rtl';
+
+            if (readingDirection === nextDirection) {
+                dirRtlBtn.classList.toggle('active', readingDirection === 'rtl');
+                dirLtrBtn.classList.toggle('active', readingDirection === 'ltr');
+                modeBookBtn.textContent = `BOOK (${readingDirection.toUpperCase()})`;
+                applyBookDirection();
+                v6RefreshTouchZones();
+                return;
+            }
+
+            readingDirection = nextDirection;
+
+            dirRtlBtn.classList.toggle('active', readingDirection === 'rtl');
+            dirLtrBtn.classList.toggle('active', readingDirection === 'ltr');
+            modeBookBtn.textContent = `BOOK (${readingDirection.toUpperCase()})`;
+
+            /* Reposition the two real Book nav zones immediately. */
+            applyBookDirection();
+            v6RefreshTouchZones();
+
+            /* Render only once on the next frame. Multiple rapid clicks
+               collapse into one render. */
+            cancelAnimationFrame(v621DirectionFrame);
+            v621DirectionFrame = requestAnimationFrame(() => {
+                if (currentMode === 'book' && totalPages > 0) {
+                    renderBookPages();
+                    updatePageIndicator();
+                    updateReaderProgress();
+                }
+            });
+
+            savePrefs();
+            saveCurrentProgress();
+            v3SavePrefs?.();
+            v5SavePrefs?.();
+            v6ScheduleProfileSave?.();
+            updateFileInfo();
+            v3UpdateInfo?.();
+        };
+
+        /* Rebind direction buttons explicitly after all addon layers. */
+        dirRtlBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDirection('rtl');
+        };
+
+        dirLtrBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDirection('ltr');
+        };
+
+        /* Guard final mode chain against rapid/re-entrant Book switching.
+           Existing v3/v4/v5/v6 behavior still runs, but only one transition
+           can execute at a time. */
+        const v621PreviousSetMode = setMode;
+        setMode = function(mode, persist = true, restoring = false) {
+            const target = mode === 'book' ? 'book' : 'list';
+
+            if (v621ModeSwitching) {
+                return;
+            }
+
+            /* Already in this mode: just refresh UI; don't rerun every layer. */
+            if (currentMode === target && !restoring) {
+                if (target === 'book') {
+                    applyBookDirection();
+                    renderBookPages();
+                    v6RefreshTouchZones();
+                }
+                return;
+            }
+
+            v621ModeSwitching = true;
+            document.body.classList.add('v621-book-switching');
+
+            try {
+                const result = v621PreviousSetMode(
+                    target,
+                    persist,
+                    restoring
+                );
+
+                if (target === 'book') {
+                    applyBookDirection();
+                    v6RefreshTouchZones();
+                } else {
+                    touchZoneLayer.classList.remove('active');
+                    touchZoneLayer.style.display = 'none';
+                    touchZoneLayer.style.pointerEvents = 'none';
+                    navPrev.style.width = '';
+                    navNext.style.width = '';
+                }
+
+                return result;
+            } finally {
+                requestAnimationFrame(() => {
+                    v621ModeSwitching = false;
+                    document.body.classList.remove('v621-book-switching');
+                    v6RefreshTouchZones();
+                });
+            }
+        };
+
+        /* Rebind BOOK/LIST after the final safe setMode wrapper. */
+        modeListBtn.onclick = event => {
+            event.preventDefault();
+            v5Webtoon = false;
+            viewer.classList.remove('webtoon-mode');
+            modeWebtoonBtn.classList.remove('active');
+            setMode('list');
+        };
+
+        modeBookBtn.onclick = event => {
+            event.preventDefault();
+            v5Webtoon = false;
+            viewer.classList.remove('webtoon-mode');
+            modeWebtoonBtn.classList.remove('active');
+            setMode('book');
+        };
+
+        /* Touch Zones center action no longer needs a full-screen button.
+           On coarse/mobile pointers, a short tap in the free center of the
+           actual viewer toggles the UI. Side taps are handled by manga-nav. */
+        viewer.addEventListener('pointerdown', event => {
+            if (
+                currentMode !== 'book' ||
+                !v6TouchEnabled ||
+                event.pointerType === 'mouse'
+            ) {
+                v621CenterPointerStart = null;
+                return;
+            }
+
+            v621CenterPointerStart = {
+                x: event.clientX,
+                y: event.clientY,
+                time: performance.now()
+            };
+        }, {passive:true});
+
+        viewer.addEventListener('pointerup', event => {
+            const start = v621CenterPointerStart;
+            v621CenterPointerStart = null;
+
+            if (
+                !start ||
+                currentMode !== 'book' ||
+                !v6TouchEnabled ||
+                event.pointerType === 'mouse'
+            ) {
+                return;
+            }
+
+            const dx = Math.abs(event.clientX - start.x);
+            const dy = Math.abs(event.clientY - start.y);
+            const dt = performance.now() - start.time;
+
+            if (dx > 18 || dy > 18 || dt > 420) return;
+
+            const sidePercent = clamp(Number(v6TouchSide || 31), 20, 42) / 100;
+            const ratio = event.clientX / Math.max(1, window.innerWidth);
+
+            /* Only the free center zone toggles UI. */
+            if (
+                ratio > sidePercent &&
+                ratio < (1 - sidePercent)
+            ) {
+                v6ToggleReaderChrome();
+            }
+        }, {passive:true});
+
+        /* Prevent the retired overlay buttons from firing if a browser keeps
+           an old pointer target during a transition. */
+        [touchZonePrev, touchZoneCenter, touchZoneNext].forEach(btn => {
+            btn.disabled = true;
+            btn.style.pointerEvents = 'none';
+        });
+
+        /* If a previous bad state left the page "blocked", normalize it. */
+        touchZoneLayer.classList.remove('active');
+        touchZoneLayer.style.display = 'none';
+        touchZoneLayer.style.pointerEvents = 'none';
+        document.body.classList.remove('v621-book-switching');
+        document.body.style.pointerEvents = '';
+
+
+        /* =====================================================
+           v6.2.2 — CLEAN / CANONICAL BOOK ENGINE
+           Do not call any previous Book wrappers from here.
+           ===================================================== */
+
+        let v622NavLock = false;
+        let v622PointerNavAt = 0;
+
+        function v622PageImages() {
+            return Array.from(
+                viewer.querySelectorAll('img[data-index]')
+            );
+        }
+
+        function v622Landscape(index) {
+            if (
+                index < 0 ||
+                index >= totalPages
+            ) {
+                return false;
+            }
+
+            const img = v4GetPageElement?.(index);
+            if (!img) return false;
+
+            if (img.dataset.v5Landscape === '1') return true;
+
+            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                return img.naturalWidth / img.naturalHeight > 1.18;
+            }
+
+            return false;
+        }
+
+        function v622SingleAt(index) {
+            if (!doublePage) return true;
+
+            /* Cover remains a single page when smart spread is enabled. */
+            if (v5SmartSpread && index === 0) return true;
+
+            /* 2-page odd explicitly keeps first page single. */
+            if (v3SpreadOdd && index === 0) return true;
+
+            /* Wide spread should stand alone. */
+            if (
+                v5SmartSpread &&
+                (
+                    v622Landscape(index) ||
+                    v622Landscape(index + 1)
+                )
+            ) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function v622BookStarts() {
+            const starts = [];
+
+            if (!totalPages) return starts;
+
+            let index = 0;
+            let guard = 0;
+
+            while (
+                index < totalPages &&
+                guard < totalPages + 4
+            ) {
+                starts.push(index);
+
+                index += v622SingleAt(index)
+                    ? 1
+                    : 2;
+
+                guard++;
+            }
+
+            return starts;
+        }
+
+        function v622NormalizeBookIndex(index = activePageIndex) {
+            if (!totalPages) return 0;
+
+            const target = clamp(
+                Number(index || 0),
+                0,
+                totalPages - 1
+            );
+
+            const starts = v622BookStarts();
+            if (!starts.length) return target;
+
+            let best = starts[0];
+
+            for (const start of starts) {
+                if (start > target) break;
+                best = start;
+            }
+
+            return best;
+        }
+
+        function v622ApplyDirection() {
+            const rtl = readingDirection !== 'ltr';
+            readingDirection = rtl ? 'rtl' : 'ltr';
+
+            viewer.classList.toggle(
+                'direction-rtl',
+                rtl
+            );
+            viewer.classList.toggle(
+                'direction-ltr',
+                !rtl
+            );
+
+            viewer.style.direction = rtl ? 'rtl' : 'ltr';
+
+            dirRtlBtn.classList.toggle(
+                'active',
+                rtl
+            );
+            dirLtrBtn.classList.toggle(
+                'active',
+                !rtl
+            );
+
+            modeBookBtn.textContent =
+                `BOOK (${readingDirection.toUpperCase()})`;
+
+            /* Physical page-turn zones follow reading direction. */
+            if (rtl) {
+                navNext.style.left = '0';
+                navNext.style.right = 'auto';
+                navPrev.style.right = '0';
+                navPrev.style.left = 'auto';
+            } else {
+                navPrev.style.left = '0';
+                navPrev.style.right = 'auto';
+                navNext.style.right = '0';
+                navNext.style.left = 'auto';
+            }
+        }
+
+        applyBookDirection = v622ApplyDirection;
+
+        renderBookPages = function() {
+            if (
+                currentMode !== 'book' ||
+                totalPages <= 0
+            ) {
+                return;
+            }
+
+            const images = v622PageImages();
+            if (!images.length) return;
+
+            activePageIndex = v622NormalizeBookIndex(
+                activePageIndex
+            );
+
+            images.forEach(img => {
+                img.classList.remove(
+                    'active',
+                    'active-pair'
+                );
+            });
+
+            const primary =
+                v4GetPageElement?.(activePageIndex) ||
+                images[activePageIndex];
+
+            if (primary) {
+                primary.classList.add('active');
+                v4EnsurePageLoaded?.(activePageIndex);
+            }
+
+            if (!v622SingleAt(activePageIndex)) {
+                const pairIndex = activePageIndex + 1;
+
+                if (pairIndex < totalPages) {
+                    const pair =
+                        v4GetPageElement?.(pairIndex) ||
+                        images[pairIndex];
+
+                    if (pair) {
+                        pair.classList.add('active-pair');
+                        v4EnsurePageLoaded?.(pairIndex);
+                    }
+                }
+            }
+
+            viewer.classList.toggle(
+                'double-page',
+                !!doublePage
+            );
+
+            v622ApplyDirection();
+
+            v4WarmAround?.(activePageIndex);
+            updateThumbnailsActive?.();
+            v3UpdateSelectorThumbActive?.();
+            v5UpdateBookmarkButton?.();
+        };
+
+        function v622SyncBookUI(save = true) {
+            updatePageIndicator?.();
+            updateReaderProgress?.();
+            updateFileInfo?.();
+            v3UpdateInfo?.();
+            v5MarkPageRead?.();
+
+            if (save) {
+                saveCurrentProgress?.();
+            }
+        }
+
+        changePage = function(next = true) {
+            if (!totalPages) return;
+
+            /* Keep list mode behavior straightforward. */
+            if (currentMode !== 'book') {
+                const target = clamp(
+                    activePageIndex + (next ? 1 : -1),
+                    0,
+                    totalPages - 1
+                );
+
+                if (target === activePageIndex) {
+                    if (next && activePageIndex >= totalPages - 1) {
+                        v5ShowChapterEnd?.();
+                    }
+                    return;
+                }
+
+                activePageIndex = target;
+
+                v4EnsurePageLoaded?.(activePageIndex);
+
+                viewer
+                    .querySelector(
+                        `img[data-index="${activePageIndex}"]`
+                    )
+                    ?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                v622SyncBookUI(true);
+                return;
+            }
+
+            if (v622NavLock) return;
+            v622NavLock = true;
+
+            try {
+                const starts = v622BookStarts();
+                if (!starts.length) return;
+
+                activePageIndex =
+                    v622NormalizeBookIndex(
+                        activePageIndex
+                    );
+
+                let position =
+                    starts.indexOf(activePageIndex);
+
+                if (position < 0) {
+                    position = 0;
+                }
+
+                const targetPosition =
+                    position + (next ? 1 : -1);
+
+                if (
+                    targetPosition < 0 ||
+                    targetPosition >= starts.length
+                ) {
+                    if (next) {
+                        v5ShowChapterEnd?.();
+                    } else {
+                        toast('Sudah halaman pertama');
+                    }
+                    return;
+                }
+
+                activePageIndex =
+                    starts[targetPosition];
+
+                renderBookPages();
+                window.scrollTo(0, 0);
+                v622SyncBookUI(true);
+
+            } finally {
+                requestAnimationFrame(() => {
+                    v622NavLock = false;
+                });
+            }
+        };
+
+        jumpToPage = function(pageNumber) {
+            if (!totalPages) return;
+
+            const target = clamp(
+                Number(pageNumber || 1) - 1,
+                0,
+                totalPages - 1
+            );
+
+            activePageIndex =
+                currentMode === 'book'
+                    ? v622NormalizeBookIndex(target)
+                    : target;
+
+            v4EnsurePageLoaded?.(activePageIndex);
+            v4WarmAround?.(activePageIndex);
+
+            if (currentMode === 'book') {
+                renderBookPages();
+                window.scrollTo(0, 0);
+            } else {
+                viewer
+                    .querySelector(
+                        `img[data-index="${activePageIndex}"]`
+                    )
+                    ?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+            }
+
+            v622SyncBookUI(true);
+        };
+
+        setDirection = function(direction) {
+            readingDirection =
+                direction === 'ltr'
+                    ? 'ltr'
+                    : 'rtl';
+
+            v622ApplyDirection();
+
+            if (currentMode === 'book') {
+                renderBookPages();
+            }
+
+            savePrefs?.();
+            v3SavePrefs?.();
+            v5SavePrefs?.();
+            saveCurrentProgress?.();
+            v6ScheduleProfileSave?.();
+            updateFileInfo?.();
+            v3UpdateInfo?.();
+        };
+
+        setDoublePage = function(enabled) {
+            doublePage = !!enabled;
+
+            if (!doublePage) {
+                v3SpreadOdd = false;
+            }
+
+            singlePageBtn.classList.toggle(
+                'active',
+                !doublePage
+            );
+            doublePageBtn.classList.toggle(
+                'active',
+                doublePage && !v3SpreadOdd
+            );
+            doubleOddBtn?.classList.toggle(
+                'active',
+                doublePage && !!v3SpreadOdd
+            );
+
+            viewer.classList.toggle(
+                'double-page',
+                currentMode === 'book' && doublePage
+            );
+
+            if (currentMode === 'book') {
+                activePageIndex =
+                    v622NormalizeBookIndex(
+                        activePageIndex
+                    );
+                renderBookPages();
+            }
+
+            savePrefs?.();
+            v3SavePrefs?.();
+            saveCurrentProgress?.();
+            v6ScheduleProfileSave?.();
+            updateFileInfo?.();
+        };
+
+        setMode = function(mode, persist = true, restoring = false) {
+            const target =
+                mode === 'book'
+                    ? 'book'
+                    : 'list';
+
+            stopAutoScroll?.();
+
+            currentMode = target;
+
+            modeListBtn.classList.toggle(
+                'active',
+                target === 'list'
+            );
+            modeBookBtn.classList.toggle(
+                'active',
+                target === 'book'
+            );
+
+            viewer.classList.remove(
+                'webtoon-mode'
+            );
+            modeWebtoonBtn?.classList.remove(
+                'active'
+            );
+            v5Webtoon = false;
+
+            touchZoneLayer.classList.remove('active');
+            touchZoneLayer.style.display = 'none';
+            touchZoneLayer.style.pointerEvents = 'none';
+
+            if (target === 'book') {
+                document.body.classList.add(
+                    'v622-book-active'
+                );
+
+                viewer.classList.add(
+                    'book-mode'
+                );
+                viewer.classList.toggle(
+                    'double-page',
+                    !!doublePage
+                );
+
+                navPrev.style.display = 'block';
+                navNext.style.display = 'block';
+
+                /* The old v3 capture blocker checks this variable. */
+                if (typeof v3ClickTurn !== 'undefined') {
+                    v3ClickTurn = true;
+                }
+
+                header.classList.remove('hide');
+
+                activePageIndex =
+                    v622NormalizeBookIndex(
+                        activePageIndex
+                    );
+
+                v622ApplyDirection();
+                renderBookPages();
+                window.scrollTo(0, 0);
+
+            } else {
+                document.body.classList.remove(
+                    'v622-book-active'
+                );
+
+                viewer.classList.remove(
+                    'book-mode',
+                    'double-page',
+                    'direction-rtl',
+                    'direction-ltr'
+                );
+                viewer.style.direction = '';
+
+                navPrev.style.display = 'none';
+                navNext.style.display = 'none';
+
+                navPrev.style.left = '';
+                navPrev.style.right = '';
+                navNext.style.left = '';
+                navNext.style.right = '';
+
+                header.classList.remove('hide');
+
+                v622PageImages().forEach(img => {
+                    img.classList.remove(
+                        'active',
+                        'active-pair'
+                    );
+                });
+
+                if (totalPages) {
+                    v4EnsurePageLoaded?.(
+                        activePageIndex
+                    );
+
+                    requestAnimationFrame(() => {
+                        viewer
+                            .querySelector(
+                                `img[data-index="${activePageIndex}"]`
+                            )
+                            ?.scrollIntoView({
+                                block: 'start'
+                            });
+                    });
+                }
+            }
+
+            v6RefreshTouchZones?.();
+            v622SyncBookUI(
+                persist && !restoring
+            );
+        };
+
+        /* ---------- FINAL BUTTON BINDINGS ---------- */
+
+        modeListBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setMode('list');
+        };
+
+        modeBookBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setMode('book');
+        };
+
+        dirRtlBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDirection('rtl');
+        };
+
+        dirLtrBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDirection('ltr');
+        };
+
+        singlePageBtn.onclick = event => {
+            event.preventDefault();
+            v3SpreadOdd = false;
+            setDoublePage(false);
+        };
+
+        doublePageBtn.onclick = event => {
+            event.preventDefault();
+            v3SpreadOdd = false;
+            setDoublePage(true);
+        };
+
+        if (doubleOddBtn) {
+            doubleOddBtn.onclick = event => {
+                event.preventDefault();
+                v3SpreadOdd = true;
+                doublePage = true;
+                activePageIndex =
+                    v622NormalizeBookIndex(
+                        activePageIndex
+                    );
+                setDoublePage(true);
+            };
+        }
+
+        /* Old click listeners can be blocked by the v3 capture setting.
+           Pointer-up is used as the canonical physical/touch Book nav,
+           while onclick is neutralized to prevent double turns. */
+        navPrev.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        navNext.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
+
+        navPrev.onpointerup = event => {
+            if (
+                currentMode !== 'book' ||
+                event.button > 0
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const now = performance.now();
+            if (now - v622PointerNavAt < 180) return;
+            v622PointerNavAt = now;
+
+            changePage(false);
+        };
+
+        navNext.onpointerup = event => {
+            if (
+                currentMode !== 'book' ||
+                event.button > 0
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const now = performance.now();
+            if (now - v622PointerNavAt < 180) return;
+            v622PointerNavAt = now;
+
+            changePage(true);
+        };
+
+        /* ---------- FINAL KEYBOARD ROUTER ----------
+           Capture phase + stopImmediatePropagation means older Book key
+           listeners cannot double-run or swallow the page turn. */
+        window.addEventListener(
+            'keydown',
+            event => {
+                if (
+                    mangaInfoScreen?.classList.contains('open') ||
+                    pageManagerOverlay?.classList.contains('open') ||
+                    chapterEndOverlay?.classList.contains('open')
+                ) {
+                    return;
+                }
+
+                const tag =
+                    document.activeElement
+                        ?.tagName
+                        ?.toLowerCase();
+
+                if (
+                    tag === 'input' ||
+                    tag === 'textarea' ||
+                    tag === 'select' ||
+                    document.activeElement?.isContentEditable
+                ) {
+                    return;
+                }
+
+                if (
+                    currentMode !== 'book' ||
+                    !totalPages
+                ) {
+                    return;
+                }
+
+                let handled = false;
+
+                if (event.key === 'ArrowLeft') {
+                    handled = true;
+
+                    changePage(
+                        readingDirection === 'rtl'
+                    );
+                } else if (
+                    event.key === 'ArrowRight'
+                ) {
+                    handled = true;
+
+                    changePage(
+                        readingDirection !== 'rtl'
+                    );
+                }
+
+                if (handled) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            },
+            true
+        );
+
+        /* If this build is loaded while an old Book state is persisted,
+           normalize it once after all final functions exist. */
+        requestAnimationFrame(() => {
+            touchZoneLayer.classList.remove('active');
+            touchZoneLayer.style.display = 'none';
+            touchZoneLayer.style.pointerEvents = 'none';
+
+            if (
+                currentMode === 'book' &&
+                totalPages > 0
+            ) {
+                setMode('book', false, true);
+            }
+        });
+
+
+        /* =====================================================
+           v6.2.3 — SAFE PAGE SELECTOR
+           ===================================================== */
+
+        function v623SyncSelectorHandle() {
+            const collapsed =
+                pageSelector.classList.contains('collapsed');
+
+            const bottom =
+                pageSelector.classList.contains('position-bottom');
+
+            selectorHandle.innerHTML = bottom
+                ? (collapsed ? '&#8743;' : '&#8744;')
+                : (collapsed ? '&#8250;' : '&#8249;');
+
+            selectorHandle.setAttribute(
+                'aria-expanded',
+                collapsed ? 'false' : 'true'
+            );
+
+            selectorHandle.title = collapsed
+                ? 'Open page selector'
+                : 'Close page selector';
+        }
+
+        function v623CloseSelector() {
+            pageSelector.classList.add('collapsed');
+            v623SyncSelectorHandle();
+
+            /* A sidebar button must never keep arrow-key focus. */
+            if (
+                document.activeElement &&
+                pageSelector.contains(document.activeElement)
+            ) {
+                document.activeElement.blur();
+            }
+        }
+
+        function v623OpenSelector() {
+            pageSelector.classList.remove('collapsed');
+            v623SyncSelectorHandle();
+        }
+
+        /* The old v3 updater automatically expanded a pinned selector.
+           Preserve the user's current collapsed/open state instead. */
+        const v623OldUpdateSelector = v3UpdateSelector;
+
+        v3UpdateSelector = function() {
+            const wasCollapsed =
+                pageSelector.classList.contains('collapsed');
+
+            const result = v623OldUpdateSelector();
+
+            if (wasCollapsed) {
+                pageSelector.classList.add('collapsed');
+            }
+
+            v623SyncSelectorHandle();
+            return result;
+        };
+
+        /* Replace old one-line toggle. Prevent button focus from lingering. */
+        selectorHandle.tabIndex = -1;
+
+        selectorHandle.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (
+                pageSelector.classList.contains('collapsed')
+            ) {
+                v623OpenSelector();
+            } else {
+                v623CloseSelector();
+            }
+
+            selectorHandle.blur();
+        };
+
+        /* Most important part:
+           every NEW manga/reader session starts with selector CLOSED.
+           v4FinalizeReaderSource calls v5AfterBookOpen dynamically, so
+           this final wrapper covers Local, Library, Recent, PDF and Link. */
+        const v623OldAfterBookOpen = v5AfterBookOpen;
+
+        v5AfterBookOpen = async function(file, options = {}) {
+            const result = await v623OldAfterBookOpen(
+                file,
+                options
+            );
+
+            v623CloseSelector();
+
+            /* Keep it closed after delayed selector/thumb updates too. */
+            requestAnimationFrame(v623CloseSelector);
+            setTimeout(v623CloseSelector, 80);
+
+            return result;
+        };
+
+        /* Opening Book manually also starts clean if selector was left open
+           in Scroll mode. This is an event hook, not another setMode wrapper. */
+        modeBookBtn.addEventListener('click', () => {
+            requestAnimationFrame(v623CloseSelector);
+        });
+
+        /* If reader loads from saved state, normalize selector once. */
+        requestAnimationFrame(() => {
+            if (
+                setup.style.display === 'none' &&
+                totalPages > 0
+            ) {
+                v623CloseSelector();
+            } else {
+                v623SyncSelectorHandle();
+            }
+        });
 
         /* Init v6 */
         v6LoadGlobalAddonPrefs();

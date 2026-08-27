@@ -6,11 +6,10 @@
     <meta name="theme-color" content="#000000">
     <title>Kirin Manga Reader</title>
     <link rel="stylesheet" href="style.css">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script defer src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
-    <div class='header' id='mainHeader'>
+<div class='header' id='mainHeader'>
         <button class='brand-home' id='homeBtn' title='Kembali ke homepage' type='button'>
             <span class='brand-mark'>K</span>
             <span class='brand-copy'><strong>Kirin Manga</strong><span>Reader Home</span></span>
@@ -68,7 +67,7 @@
                     <span class='home-global-search-icon'>&#8981;</span>
                     <input class='home-global-search-input' id='homeGlobalSearch'
                            placeholder='Search Library, Recent Read atau Link History...'
-                           type='search'>
+                           type='search'/>
                     <span class='home-global-search-hint'>GLOBAL SEARCH</span>
                 </div>
                 <div class='home-search-results' id='homeSearchResults'></div>
@@ -105,16 +104,16 @@
                         <p style='font-size:17px;'>Drop <b>.cbz</b>, <b>.zip</b> or <b>.pdf</b></p>
                         <span style='font-size:11px;color:#666;'>Klik atau lepaskan fail manga di sini</span>
                     </div>
-                    <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf' id='fileInput' type='file'>
+                    <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf' id='fileInput' type='file'/>
                     <div class='local-addon-row'>
                         <button class='local-addon-btn' id='multiFileBtn' type='button'>+ ADD MULTIPLE FILES</button>
                         <button class='local-addon-btn' id='folderBtn' type='button'>+ ADD FOLDER LIBRARY</button>
                     </div>
                     <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf'
-                           id='multiFileInput' multiple='multiple' style='display:none' type='file'>
+                           id='multiFileInput' multiple='multiple' style='display:none' type='file'/>
                     <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf'
                            id='folderInput' multiple='multiple' style='display:none'
-                           webkitdirectory='webkitdirectory' type='file'>
+                           webkitdirectory='webkitdirectory' type='file'/>
                 </section>
 
                 <section class='reader-choice'>
@@ -124,7 +123,7 @@
                     </div>
                     <div class='link-reader-box'>
                         <div class='link-input-row'>
-                            <input class='link-input' id='linkInput' placeholder='https://...' spellcheck='false' type='url'>
+                            <input class='link-input' id='linkInput' placeholder='https://...' spellcheck='false' type='url'/>
                             <button class='link-open-btn' id='linkOpenBtn' type='button'>OPEN</button>
                         </div>
                         <div class='link-help'>
@@ -202,7 +201,7 @@
 
                     <div class='library-tab-panel' data-library-panel='library'>
                         <div class='library-tools-row'>
-                            <input class='library-search' id='librarySearch' placeholder='Search series / chapter...' type='search'>
+                            <input class='library-search' id='librarySearch' placeholder='Search series / chapter...' type='search'/>
                             <select class='library-sort' id='librarySort'>
                                 <option value='recent'>Recent</option>
                                 <option value='az'>A-Z</option>
@@ -304,7 +303,7 @@
                         </div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Maximum Page Width</div>
-                            <div class='setting-row'><div class='setting-label'>Page width</div><div class='setting-range-wrap'><input id='widthRange' max='1400' min='500' step='50' type='range' value='900'><span class='setting-number' id='widthValue'>900px</span></div></div>
+                            <div class='setting-row'><div class='setting-label'>Page width</div><div class='setting-range-wrap'><input id='widthRange' max='1400' min='500' step='50' type='range' value='900'/><span class='setting-number' id='widthValue'>900px</span></div></div>
                         </div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Reader Layout</div>
@@ -330,7 +329,7 @@
                         </div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Jump To Page</div>
-                            <div class='setting-row'><div class='setting-label'>Page</div><div class='segmented'><input class='jump-input' id='jumpInput' min='1' type='number' value='1'><button id='jumpBtn' type='button'>GO</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Page</div><div class='segmented'><input class='jump-input' id='jumpInput' min='1' type='number' value='1'/><button id='jumpBtn' type='button'>GO</button></div></div>
                         </div>
                         <div class='setting-section'><div class='settings-action-grid'><button id='fullscreenBtn' type='button'>Fullscreen</button><button id='thumbSettingsBtn' type='button'>Page Previews</button></div></div>
                     </section>
@@ -349,11 +348,11 @@
 
                         <div class='setting-section'>
                             <div class='setting-section-title'>Page Preload</div>
-                            <div class='setting-row'><div class='setting-label'>Pages around current</div><div class='setting-range-wrap'><input id='preloadRange' max='10' min='1' step='1' type='range' value='3'><span class='setting-number' id='preloadValue'>3</span></div></div>
+                            <div class='setting-row'><div class='setting-label'>Pages around current</div><div class='setting-range-wrap'><input id='preloadRange' max='10' min='1' step='1' type='range' value='3'/><span class='setting-number' id='preloadValue'>3</span></div></div>
                         </div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Vertical Scroll Speed Using Keyboard Arrows</div>
-                            <div class='setting-row'><div class='setting-label'>Arrow scroll</div><div class='setting-range-wrap'><input id='keyboardScrollRange' max='100' min='5' step='5' type='range' value='25'><span class='setting-number' id='keyboardScrollValue'>25px</span></div></div>
+                            <div class='setting-row'><div class='setting-label'>Arrow scroll</div><div class='setting-range-wrap'><input id='keyboardScrollRange' max='100' min='5' step='5' type='range' value='25'/><span class='setting-number' id='keyboardScrollValue'>25px</span></div></div>
                         </div>
                         <div class='setting-section'>
                             <div class='setting-row'><div class='setting-label'>Reset page scroll after page flip</div><div class='toggle-pair' data-toggle='resetPageScroll'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
@@ -363,7 +362,7 @@
                         </div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Auto Scroll</div>
-                            <div class='setting-row'><div class='setting-label'>Speed</div><div class='setting-range-wrap'><input id='autoSpeedRange' max='180' min='20' step='10' type='range' value='70'><span class='setting-number' id='autoSpeedValue'>70</span></div></div>
+                            <div class='setting-row'><div class='setting-label'>Speed</div><div class='setting-range-wrap'><input id='autoSpeedRange' max='180' min='20' step='10' type='range' value='70'/><span class='setting-number' id='autoSpeedValue'>70</span></div></div>
                             <div class='settings-action-grid'><button id='autoScrollBtn' type='button'>Start / Stop Auto Scroll</button></div>
                         </div>
                         <div class='setting-section'>
@@ -381,7 +380,7 @@
                             <div class='setting-row'>
                                 <div class='setting-label'>Side zone width</div>
                                 <div class='setting-range-wrap'>
-                                    <input id='touchZoneRange' max='42' min='20' step='1' type='range' value='31'>
+                                    <input id='touchZoneRange' max='42' min='20' step='1' type='range' value='31'/>
                                     <span class='setting-number' id='touchZoneValue'>31%</span>
                                 </div>
                             </div>
@@ -420,13 +419,13 @@
                             <button class='theme-preset' data-bg='#201b16' style='background:#201b16' type='button'><span>Warm</span></button>
                             <button class='theme-preset' data-bg='#101823' style='background:#101823' type='button'><span>Blue Night</span></button>
                         </div></div>
-                        <div class='setting-section'><div class='setting-section-title'>Brightness</div><div class='setting-row'><div class='setting-label'>Page brightness</div><div class='setting-range-wrap'><input id='brightnessRange' max='130' min='50' step='5' type='range' value='100'><span class='setting-number' id='brightnessValue'>100%</span></div></div></div>
+                        <div class='setting-section'><div class='setting-section-title'>Brightness</div><div class='setting-row'><div class='setting-label'>Page brightness</div><div class='setting-range-wrap'><input id='brightnessRange' max='130' min='50' step='5' type='range' value='100'/><span class='setting-number' id='brightnessValue'>100%</span></div></div></div>
                         <div class='setting-section'>
                             <div class='setting-section-title'>Image Controls</div>
                             <div class='setting-row'>
                                 <div class='setting-label'>Contrast</div>
                                 <div class='setting-range-wrap'>
-                                    <input id='contrastRange' max='160' min='60' step='5' type='range' value='100'>
+                                    <input id='contrastRange' max='160' min='60' step='5' type='range' value='100'/>
                                     <span class='setting-number' id='contrastValue'>100%</span>
                                 </div>
                             </div>
@@ -453,7 +452,7 @@
                             <div class='setting-row'>
                                 <div class='setting-label'>Manual crop</div>
                                 <div class='setting-range-wrap'>
-                                    <input id='cropManualRange' max='12' min='0' step='0.5' type='range' value='2'>
+                                    <input id='cropManualRange' max='12' min='0' step='0.5' type='range' value='2'/>
                                     <span class='setting-number' id='cropManualValue'>2%</span>
                                 </div>
                             </div>
@@ -530,10 +529,10 @@
                         <div class='setting-section'><div class='settings-action-grid'>
                             <button id='exportHistoryBtn' type='button'>Export History</button><button id='importHistoryBtn' type='button'>Import History</button>
                             <button class='danger' id='clearCacheBtn' type='button'>Clear Library Cache</button><button class='danger' id='resetSettingsBtn' type='button'>Reset Settings</button>
-                        </div><input accept='.json,application/json' id='historyImportInput' style='display:none' type='file'></div>
+                        </div><input accept='.json,application/json' id='historyImportInput' style='display:none' type='file'/></div>
                     </section>
 
-                    <section class='settings-tab' data-settings-panel='about'><div class='setting-section'><div class='setting-section-title'>Kirin Manga Reader</div><div class='settings-note'>Version 6.2 • Manga Info Gateway Edition.<br><br>Local Reader membaca CBZ/ZIP/PDF dari device dengan lazy page rendering. Link Reader membaca direct archive, image URL atau JSON manga berasaskan senarai image URL. Setting dan progress disimpan dalam browser.</div></div></section>
+                    <section class='settings-tab' data-settings-panel='about'><div class='setting-section'><div class='setting-section-title'>Kirin Manga Reader</div><div class='settings-note'>Version 6.2.3 • Clean Book + Closed Sidebar.<br/><br/>Local Reader membaca CBZ/ZIP/PDF dari device dengan lazy page rendering. Link Reader membaca direct archive, image URL atau JSON manga berasaskan senarai image URL. Setting dan progress disimpan dalam browser.</div></div></section>
                 </div>
             </div>
         </div>
@@ -665,5 +664,6 @@
 <footer class='site-footer'>
         &#169; <span id='currentYear'></span> Kirin Manga Reader. Hak cipta terpelihara.
     </footer>
+    <script src="script.js"></script>
 </body>
 </html>

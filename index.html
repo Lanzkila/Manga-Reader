@@ -3,63 +3,667 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kirin Reader</title>
-    
-    <!-- Pustaka JSZip -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    
-    <!-- Fail Gaya CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <meta name="theme-color" content="#000000">
+    <title>Kirin Manga Reader</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="script.js"></script>
 </head>
 <body>
-
-    <div class="header" id="mainHeader">
-        <h2>Kirin Reader</h2>
-        <div class="controls-wrapper" id="topControls" style="display:none">
-            <div class="btn-group" id="zoomControls">
-                <button class="btn-toggle" id="zoomOut">W -</button>
-                <button class="btn-toggle" id="zoomIn">W +</button>
+    <div class='header' id='mainHeader'>
+        <button class='brand-home' id='homeBtn' title='Kembali ke homepage' type='button'>
+            <span class='brand-mark'>K</span>
+            <span class='brand-copy'><strong>Kirin Manga</strong><span>Reader Home</span></span>
+        </button>
+        <div class='controls-wrapper' id='topControls' style='display:none'>
+            <div class='btn-group' id='zoomControls'>
+                <button class='btn-toggle' id='zoomOut'>W -</button>
+                <button class='btn-toggle' id='zoomIn'>W +</button>
             </div>
             
-            <div class="btn-group">
-                <button class="btn-toggle active" id="modeListBtn">SCROLL</button>
-                <button class="btn-toggle" id="modeBookBtn">BOOK (RTL)</button>
+            <div class='btn-group'>
+                <button class='btn-toggle active' id='modeListBtn'>SCROLL</button>
+                <button class='btn-toggle' id='modeBookBtn'>BOOK (RTL)</button>
+                <button class='btn-toggle' id='modeWebtoonBtn'>WEBTOON</button>
             </div>
 
-            <span class="page-info" id="pageCounter">0 Pgs</span>
-            <button class="btn-small" onclick="location.reload()">NEW</button>
+            <span class='page-info' id='pageCounter' title='Klik untuk lompat halaman'>0 Pgs</span>
+            <button class='btn-toggle' id='thumbBtn' type='button'>PAGES</button>
+            <button class='btn-toggle' id='toolsBtn' type='button'>TOOLS</button>
+            <button class='btn-small' id='openNewBtn' type='button'>OPEN</button>
         </div>
     </div>
 
-    <div class="manga-nav prev" id="navPrev"></div>
-    <div class="manga-nav next" id="navNext"></div>
+    <div class='manga-nav prev' id='navPrev'></div>
+    <div class='manga-nav next' id='navNext'></div>
 
-    <div id="setup">
-        <div class="drop-zone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-            <p style="font-size: 18px;">Drop <b>.cbz</b> or <b>.zip</b></p>
-            <span style="font-size: 12px; color: #666;">Klik untuk pilih fail manga kau</span>
+    <aside class='page-selector' id='pageSelector'>
+        <button class='page-selector-handle' id='selectorHandle' type='button'>&#8250;</button>
+        <div class='selector-title'><b id='selectorTitle'>Kirin Manga Reader</b><span id='selectorSource'>Reader</span></div>
+        <div class='selector-nav-row'>
+            <button id='selectorPrev' type='button'>&#8249;</button>
+            <div class='selector-page-display' id='selectorPageDisplay'>0 / 0</div>
+            <button id='selectorNext' type='button'>&#8250;</button>
         </div>
-        <input id="fileInput" type="file">
-        <div id="status">Memproses halaman manga...</div>
-        
-        <!-- Bahagian Recent Read -->
-        <div id="recentContainer" class="recent-container" style="display:none;">
-            <div class="recent-header-wrapper">
-                 <h3>Bacaan Terkini</h3>
-                 <button id="clearAllBtn" class="btn-clear-all">Padam Semua</button>
+        <div class='selector-actions'>
+            <button id='selectorFirst' title='First page' type='button'>|&#8249;</button>
+            <button id='selectorLast' title='Last page' type='button'>&#8250;|</button>
+            <button id='selectorThumbs' title='Thumbnails' type='button'>&#9638;</button>
+            <button id='selectorBookmark' title='Bookmark page' type='button'>&#9734;</button>
+            <button id='selectorSettings' title='Settings' type='button'>&#9881;</button>
+        </div>
+        <div class='selector-thumb-list' id='selectorThumbList'></div>
+    </aside>
+
+    <div id='setup'>
+        <div class='reader-home'>
+            <div class='reader-home-hero'>
+                <div class='home-logo'>K</div>
+                <h1>Kirin <span>Manga Reader</span></h1>
+                <p>Dua reader dalam satu homepage: baca fail manga dari komputer atau buka sumber manga melalui link.</p>
+            </div>
+
+            <section class='home-global-search' id='homeSearchSection'>
+                <div class='home-global-search-row'>
+                    <span class='home-global-search-icon'>&#8981;</span>
+                    <input class='home-global-search-input' id='homeGlobalSearch'
+                           placeholder='Search Library, Recent Read atau Link History...'
+                           type='search'>
+                    <span class='home-global-search-hint'>GLOBAL SEARCH</span>
                 </div>
-            <div id="recentList"></div>
+                <div class='home-search-results' id='homeSearchResults'></div>
+            </section>
+
+            <div class='home-resume-bar' id='homeResumeBar'>
+                <span class='home-resume-icon'>&#8634;</span>
+                <div class='home-resume-copy'>
+                    <b id='homeResumeTitle'>Resume last session</b>
+                    <span id='homeResumeMeta'>Page terakhir</span>
+                </div>
+                <button class='home-resume-btn' id='homeResumeBtn' type='button'>RESUME</button>
+                <button class='home-resume-dismiss' id='homeResumeDismiss' title='Dismiss' type='button'>&#215;</button>
+            </div>
+
+            <section class='continue-reading-hero' id='continueReadingHero'>
+                <div class='continue-cover' id='continueCover'>K</div>
+                <div class='continue-main'>
+                    <div class='continue-kicker'>Continue Reading</div>
+                    <div class='continue-title' id='continueTitle'>Manga</div>
+                    <div class='continue-meta' id='continueMeta'>Page 1 / 1</div>
+                    <div class='continue-progress'><span id='continueProgressFill'></span></div>
+                </div>
+                <button class='continue-action' id='continueReadBtn' type='button'>CONTINUE</button>
+            </section>
+
+            <div class='reader-choice-grid'>
+                <section class='reader-choice'>
+                    <div class='reader-choice-head'>
+                        <div class='reader-choice-icon'>&#9635;</div>
+                        <div class='reader-choice-title'><b>Local Reader</b><span>CBZ / ZIP / PDF • lazy loading &amp; progress lokal</span></div>
+                    </div>
+                    <div class='drop-zone' id='dropArea' onclick='document.getElementById(&quot;fileInput&quot;).click()'>
+                        <p style='font-size:17px;'>Drop <b>.cbz</b>, <b>.zip</b> or <b>.pdf</b></p>
+                        <span style='font-size:11px;color:#666;'>Klik atau lepaskan fail manga di sini</span>
+                    </div>
+                    <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf' id='fileInput' type='file'>
+                    <div class='local-addon-row'>
+                        <button class='local-addon-btn' id='multiFileBtn' type='button'>+ ADD MULTIPLE FILES</button>
+                        <button class='local-addon-btn' id='folderBtn' type='button'>+ ADD FOLDER LIBRARY</button>
+                    </div>
+                    <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf'
+                           id='multiFileInput' multiple='multiple' style='display:none' type='file'>
+                    <input accept='.cbz,.zip,.pdf,application/zip,application/x-cbz,application/pdf'
+                           id='folderInput' multiple='multiple' style='display:none'
+                           webkitdirectory='webkitdirectory' type='file'>
+                </section>
+
+                <section class='reader-choice'>
+                    <div class='reader-choice-head'>
+                        <div class='reader-choice-icon'>&#8599;</div>
+                        <div class='reader-choice-title'><b>Link Reader</b><span>URL archive, image atau JSON manga</span></div>
+                    </div>
+                    <div class='link-reader-box'>
+                        <div class='link-input-row'>
+                            <input class='link-input' id='linkInput' placeholder='https://...' spellcheck='false' type='url'>
+                            <button class='link-open-btn' id='linkOpenBtn' type='button'>OPEN</button>
+                        </div>
+                        <div class='link-help'>
+                            Sokong <b>direct .cbz/.zip/.pdf URL</b>, direct image, JSON <b>pages/images</b>, dan
+                            <b>Cubari-format JSON</b> yang mempunyai image URL. Host mesti membenarkan CORS.
+                        </div>
+                        <div class='link-chapters' id='linkChapters'></div>
+                    </div>
+                </section>
+            </div>
+
+            <nav class='home-quick-actions' id='homeQuickActions'>
+                <button class='home-quick-action primary' id='quickOpenFile' type='button'><span class='qa-icon'>&#9635;</span>Open File</button>
+                <button class='home-quick-action' id='quickOpenFolder' type='button'><span class='qa-icon'>&#128193;</span>Open Folder</button>
+                <button class='home-quick-action' id='quickPasteLink' type='button'><span class='qa-icon'>&#8599;</span>Paste Link</button>
+                <button class='home-quick-action' id='quickLibrary' type='button'><span class='qa-icon'>&#9638;</span>Library</button>
+                <button class='home-quick-action' id='quickResume' type='button'><span class='qa-icon'>&#9654;</span>Resume Last</button>
+                <button class='home-quick-action' id='quickRandom' type='button'><span class='qa-icon'>&#9851;</span>Random Manga</button>
+            </nav>
+
+            <div class='home-welcome-state' id='homeWelcomeState'>
+                Library masih kosong. Drop manga, pilih folder, atau paste link untuk mula membaca.
+            </div>
+
+            <div class='home-status'><div id='status'>Memproses halaman manga...</div></div>
+
+            <section class='reader-library-tabs'>
+                <div class='library-tabs-head'>
+                    <div class='library-tab-switcher'>
+                        <button class='library-tab-btn active' data-library-tab='recent' id='recentTabBtn' type='button'>
+                            <span class='library-tab-icon'>&#9654;</span>
+                            <span>Recent Read</span>
+                            <span class='library-tab-count' id='recentCount'>0</span>
+                        </button>
+                        <button class='library-tab-btn' data-library-tab='history' id='historyTabBtn' type='button'>
+                            <span class='library-tab-icon'>&#8634;</span>
+                            <span>History</span>
+                            <span class='library-tab-count' id='historyCount'>0</span>
+                        </button>
+                        <button class='library-tab-btn' data-library-tab='library' id='libraryTabBtn' type='button'>
+                            <span class='library-tab-icon'>&#9638;</span>
+                            <span>Library</span>
+                            <span class='library-tab-count' id='libraryCount'>0</span>
+                        </button>
+                        <button class='library-tab-btn' data-library-tab='sessions' id='sessionsTabBtn' type='button'>
+                            <span class='library-tab-icon'>&#9716;</span>
+                            <span>Sessions</span>
+                            <span class='library-tab-count' id='sessionsCount'>0</span>
+                        </button>
+                    </div>
+
+                    <div class='library-tabs-line'></div>
+
+                    <div class='library-slider-actions'>
+                        <button class='library-slider-btn' id='librarySlidePrev' title='Slide kiri' type='button'>&#8249;</button>
+                        <button class='library-slider-btn' id='librarySlideNext' title='Slide kanan' type='button'>&#8250;</button>
+                        <button class='library-active-clear' id='libraryActiveClear' type='button'>Clear</button>
+                    </div>
+                </div>
+
+                <div class='library-tab-panels'>
+                    <div class='library-tab-panel active' data-library-panel='recent'>
+                        <div class='recent-container' id='recentContainer'>
+                            <div class='library-horizontal-track' id='recentList'>
+                                <div class='home-data-empty'>Belum ada bacaan Local Reader.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='library-tab-panel' data-library-panel='history'>
+                        <div class='link-history-box library-horizontal-track' id='linkHistoryBox'>
+                            <div class='home-data-empty'>Belum ada sejarah Link Reader.</div>
+                        </div>
+                    </div>
+
+                    <div class='library-tab-panel' data-library-panel='library'>
+                        <div class='library-tools-row'>
+                            <input class='library-search' id='librarySearch' placeholder='Search series / chapter...' type='search'>
+                            <select class='library-sort' id='librarySort'>
+                                <option value='recent'>Recent</option>
+                                <option value='az'>A-Z</option>
+                                <option value='progress'>Progress</option>
+                                <option value='series'>Series</option>
+                            </select>
+                            <select class='library-sort' id='libraryStatusFilter'>
+                                <option value='all'>All</option>
+                                <option value='unread'>Unread</option>
+                                <option value='reading'>Reading</option>
+                                <option value='completed'>Completed</option>
+                            </select>
+                        </div>
+                        <div class='series-progress-strip' id='seriesProgressStrip'>
+                            <div class='home-data-empty'>Series progress akan muncul selepas Library mempunyai manga.</div>
+                        </div>
+                        <div class='library-horizontal-track' id='libraryShelf'>
+                            <div class='home-data-empty'>Library masih kosong. Tambah multiple files atau folder.</div>
+                        </div>
+                    </div>
+
+                    <div class='library-tab-panel' data-library-panel='sessions'>
+                        <div class='library-horizontal-track' id='sessionShelf'>
+                            <div class='home-data-empty'>Belum ada reading session.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing clear logic is kept, but these native buttons stay hidden.
+                     The visible Clear button above calls the one for the active tab. -->
+                <button id='clearAllBtn' style='display:none' type='button'>Clear Recent</button>
+                <button id='clearLinkHistoryBtn' style='display:none' type='button'>Clear History</button>
+            </section>
+
+            <section class='home-dashboard-section' id='homePinnedSection'>
+                <div class='home-dashboard-head'><h3>Pinned Series</h3><span>Favourite</span></div>
+                <div class='home-dashboard-track' id='homePinnedTrack'></div>
+            </section>
+
+            <section class='home-dashboard-section' id='homeRecentlyAddedSection'>
+                <div class='home-dashboard-head'><h3>Recently Added</h3><span>Library terbaru</span></div>
+                <div class='home-dashboard-track' id='homeRecentlyAddedTrack'></div>
+            </section>
+
+            <section class='home-dashboard-section' id='homeSeriesSection'>
+                <div class='home-dashboard-head'><h3>Series Progress</h3><span>Aktif sekarang</span></div>
+                <div class='home-dashboard-track' id='homeSeriesTrack'></div>
+            </section>
+
+            <section class='home-summary-grid' id='homeSummarySection'>
+                <div class='home-summary-card'>
+                    <div class='home-summary-title'>Reading Status</div>
+                    <div class='home-status-chips'>
+                        <button class='home-status-chip reading' id='homeReadingChip' type='button'>0 Reading</button>
+                        <button class='home-status-chip completed' id='homeCompletedChip' type='button'>0 Completed</button>
+                        <button class='home-status-chip' id='homeUnreadChip' type='button'>0 Unread</button>
+                    </div>
+                </div>
+                <div class='home-summary-card'>
+                    <div class='home-summary-title'>Kirin Storage</div>
+                    <div class='home-storage-line'><strong id='homeStorageValue'>0 B</strong><span id='homeStorageMeta'>cached</span></div>
+                    <div class='home-storage-meter'><span id='homeStorageFill'></span></div>
+                    <button class='home-storage-open' id='homeStorageOpen' type='button'>Open Storage Manager &#8594;</button>
+                </div>
+            </section>
         </div>
     </div>
 
-    <div id="viewer"></div>
+    <div id='viewer'></div>
 
-    <!-- Footer -->
-    <footer class='site-footer'>
-    &copy; <span id='currentYear'></span> Kirin Reader. Hak cipta terpelihara.
+    <div class='reader-progress' id='readerProgress'>
+        <div class='reader-progress-fill' id='readerProgressFill'></div>
+    </div>
+
+    <div class='auto-scroll-badge' id='autoScrollBadge'>AUTO SCROLL</div>
+    <div class='v4-performance-badge' id='v4PerformanceBadge'>PERFORMANCE MODE</div>
+
+    <div class='settings-overlay' id='toolsPanel' onclick='if(event.target===this) closePanels()'>
+        <div class='settings-modal' onclick='event.stopPropagation()'>
+            <nav class='settings-nav'>
+                <div class='settings-nav-title'>Settings</div>
+                <button class='settings-tab-btn active' data-settings-tab='reader' type='button'>Reader</button>
+                <button class='settings-tab-btn' data-settings-tab='behavior' type='button'>Behavior</button>
+                <button class='settings-tab-btn' data-settings-tab='layout' type='button'>Layout</button>
+                <button class='settings-tab-btn' data-settings-tab='themes' type='button'>Themes</button>
+                <button class='settings-tab-btn' data-settings-tab='library' type='button'>Library</button>
+                <button class='settings-tab-btn' data-settings-tab='advanced' type='button'>Advanced</button>
+                <button class='settings-tab-btn' data-settings-tab='about' type='button'>About</button>
+            </nav>
+            <div class='settings-main'>
+                <div class='settings-top'><strong id='settingsTitle'>Reader</strong><button class='settings-close' id='toolsClose' type='button'>&#215;</button></div>
+                <div class='settings-content'>
+                    <section class='settings-tab active' data-settings-panel='reader'>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Page Fit</div>
+                            <div class='setting-row'><div class='setting-label'>Fit mode</div><div class='segmented'>
+                                <button data-fit='original' type='button'>1:1 Original</button><button class='active' data-fit='width' type='button'>Width</button><button data-fit='height' type='button'>Height</button>
+                            </div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Maximum Page Width</div>
+                            <div class='setting-row'><div class='setting-label'>Page width</div><div class='setting-range-wrap'><input id='widthRange' max='1400' min='500' step='50' type='range' value='900'><span class='setting-number' id='widthValue'>900px</span></div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Reader Layout</div>
+                            <div class='setting-row'><div class='setting-label'>Direction</div><div class='segmented'>
+                                <button id='dirLtrBtn' type='button'>Left-to-right</button><button data-layout-scroll='1' type='button'>Top-to-bottom</button><button class='active' id='dirRtlBtn' type='button'>Right-to-left</button>
+                            </div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>2-Page Spread</div>
+                            <div class='setting-row'><div class='setting-label'>Spread</div><div class='segmented'>
+                                <button class='active' id='singlePageBtn' type='button'>1-page</button><button id='doublePageBtn' type='button'>2-page</button><button id='doubleOddBtn' type='button'>2-page odd</button>
+                            </div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Smart Spread</div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>Auto single cover / landscape<span class='setting-sub'>Cover pertama dan halaman landscape tidak dipaksa jadi pair.</span></div>
+                                <div class='segmented'>
+                                    <button class='active' id='smartSpreadOn' type='button'>ON</button>
+                                    <button id='smartSpreadOff' type='button'>OFF</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Jump To Page</div>
+                            <div class='setting-row'><div class='setting-label'>Page</div><div class='segmented'><input class='jump-input' id='jumpInput' min='1' type='number' value='1'><button id='jumpBtn' type='button'>GO</button></div></div>
+                        </div>
+                        <div class='setting-section'><div class='settings-action-grid'><button id='fullscreenBtn' type='button'>Fullscreen</button><button id='thumbSettingsBtn' type='button'>Page Previews</button></div></div>
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='behavior'>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Memory Mode</div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>Page cache<span class='setting-sub'>Low Memory simpan lebih sedikit page di RAM untuk manga/PDF panjang.</span></div>
+                                <div class='segmented'>
+                                    <button class='active' id='memoryNormalBtn' type='button'>Normal</button>
+                                    <button id='memoryLowBtn' type='button'>Low Memory</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Page Preload</div>
+                            <div class='setting-row'><div class='setting-label'>Pages around current</div><div class='setting-range-wrap'><input id='preloadRange' max='10' min='1' step='1' type='range' value='3'><span class='setting-number' id='preloadValue'>3</span></div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Vertical Scroll Speed Using Keyboard Arrows</div>
+                            <div class='setting-row'><div class='setting-label'>Arrow scroll</div><div class='setting-range-wrap'><input id='keyboardScrollRange' max='100' min='5' step='5' type='range' value='25'><span class='setting-number' id='keyboardScrollValue'>25px</span></div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-row'><div class='setting-label'>Reset page scroll after page flip</div><div class='toggle-pair' data-toggle='resetPageScroll'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Turn pages by clicking</div><div class='toggle-pair' data-toggle='clickTurn'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Arrow keys in vertical view</div><div class='toggle-pair' data-toggle='verticalArrows'><button class='on' type='button'>&#10003;</button><button class='off active' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Enable swipe gestures</div><div class='toggle-pair' data-toggle='swipeEnabled'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Auto Scroll</div>
+                            <div class='setting-row'><div class='setting-label'>Speed</div><div class='setting-range-wrap'><input id='autoSpeedRange' max='180' min='20' step='10' type='range' value='70'><span class='setting-number' id='autoSpeedValue'>70</span></div></div>
+                            <div class='settings-action-grid'><button id='autoScrollBtn' type='button'>Start / Stop Auto Scroll</button></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Touch Zones • HP / Tablet</div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>
+                                    Tap zones
+                                    <span class='setting-sub'>Kiri = previous, tengah = tunjuk/sembunyi UI, kanan = next.</span>
+                                </div>
+                                <div class='segmented'>
+                                    <button class='active' id='touchZonesOn' type='button'>ON</button>
+                                    <button id='touchZonesOff' type='button'>OFF</button>
+                                </div>
+                            </div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>Side zone width</div>
+                                <div class='setting-range-wrap'>
+                                    <input id='touchZoneRange' max='42' min='20' step='1' type='range' value='31'>
+                                    <span class='setting-number' id='touchZoneValue'>31%</span>
+                                </div>
+                            </div>
+                            <div class='touch-zone-preview'>
+                                <span class='prev'>PREV</span><span>UI</span><span class='next'>NEXT</span>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='layout'>
+                        <div class='setting-section'><div class='setting-section-title'>Page Selector Position</div><div class='segmented'><button class='active' data-selector-position='left' type='button'>Left</button><button data-selector-position='bottom' type='button'>Bottom</button></div></div>
+                        <div class='setting-section'>
+                            <div class='setting-row'><div class='setting-label'>Pin page selector</div><div class='toggle-pair' data-toggle='pinSelector'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Show page number</div><div class='toggle-pair' data-toggle='showPageNumber'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Show sidebar</div><div class='toggle-pair' data-toggle='showSidebar'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Show previews</div><div class='toggle-pair' data-toggle='showPreviews'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Homepage Sections</div>
+                            <div class='home-personalize-note' style='margin-bottom:8px'>Matikan section yang kau tak mahu. Section kosong tetap auto-hide.</div>
+                            <div class='setting-row'><div class='setting-label'>Global Search</div><div class='toggle-pair' data-home-toggle='search'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Continue Reading</div><div class='toggle-pair' data-home-toggle='continue'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Quick Actions</div><div class='toggle-pair' data-home-toggle='quick'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Pinned Series</div><div class='toggle-pair' data-home-toggle='pinned'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Recently Added</div><div class='toggle-pair' data-home-toggle='recentAdded'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Series Progress</div><div class='toggle-pair' data-home-toggle='series'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                            <div class='setting-row'><div class='setting-label'>Status &amp; Storage</div><div class='toggle-pair' data-home-toggle='summary'><button class='on active' type='button'>&#10003;</button><button class='off' type='button'>&#215;</button></div></div>
+                        </div>
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='themes'>
+                        <div class='setting-section'><div class='setting-section-title'>Reader Theme</div><div class='theme-preset-grid'>
+                            <button class='theme-preset active' data-bg='#000000' style='background:#000' type='button'><span>Black</span></button>
+                            <button class='theme-preset' data-bg='#161616' style='background:#161616' type='button'><span>Gray</span></button>
+                            <button class='theme-preset' data-bg='#201b16' style='background:#201b16' type='button'><span>Warm</span></button>
+                            <button class='theme-preset' data-bg='#101823' style='background:#101823' type='button'><span>Blue Night</span></button>
+                        </div></div>
+                        <div class='setting-section'><div class='setting-section-title'>Brightness</div><div class='setting-row'><div class='setting-label'>Page brightness</div><div class='setting-range-wrap'><input id='brightnessRange' max='130' min='50' step='5' type='range' value='100'><span class='setting-number' id='brightnessValue'>100%</span></div></div></div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Image Controls</div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>Contrast</div>
+                                <div class='setting-range-wrap'>
+                                    <input id='contrastRange' max='160' min='60' step='5' type='range' value='100'>
+                                    <span class='setting-number' id='contrastValue'>100%</span>
+                                </div>
+                            </div>
+                            <div class='image-control-row'>
+                                <button id='invertBtn' type='button'>Invert</button>
+                                <button id='rotateLeftBtn' type='button'>&#8634; Rotate -90</button>
+                                <button id='rotateRightBtn' type='button'>Rotate +90 &#8635;</button>
+                                <button id='imageResetBtn' type='button'>Reset Image</button>
+                            </div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Auto Crop Margin</div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>
+                                    Crop border
+                                    <span class='setting-sub'>Auto scan dibuat pada thumbnail kecil sahaja supaya reader kekal ringan.</span>
+                                </div>
+                                <div class='segmented'>
+                                    <button id='cropOffBtn' type='button'>Off</button>
+                                    <button class='active' id='cropAutoBtn' type='button'>Auto</button>
+                                    <button id='cropManualBtn' type='button'>Manual</button>
+                                </div>
+                            </div>
+                            <div class='setting-row'>
+                                <div class='setting-label'>Manual crop</div>
+                                <div class='setting-range-wrap'>
+                                    <input id='cropManualRange' max='12' min='0' step='0.5' type='range' value='2'>
+                                    <span class='setting-number' id='cropManualValue'>2%</span>
+                                </div>
+                            </div>
+                            <div class='crop-status-note' id='cropStatusNote'>
+                                <b>Auto</b> • border putih/hitam kosong akan cuba dikesan per halaman.
+                            </div>
+                        </div>
+                        <div class='setting-section'><div class='setting-section-title'>Accent</div><div class='segmented'><button data-accent='#e42d32' type='button'>Red</button><button class='active' data-accent='#8ab4f8' type='button'>Blue</button><button data-accent='#65d46e' type='button'>Green</button></div></div>
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='library'>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Per-Manga Reader Profile</div>
+                            <div class='manga-profile-box'>
+                                <div class='manga-profile-head'>
+                                    <strong id='mangaProfileTitle'>Belum ada manga dibuka</strong>
+                                    <span class='manga-profile-state' id='mangaProfileState'>GLOBAL</span>
+                                </div>
+                                <div class='manga-profile-detail' id='mangaProfileDetail'>
+                                    Bila manga dibuka, setting reader manga itu akan diingat sendiri.
+                                </div>
+                                <div class='settings-action-grid' style='margin-top:9px'>
+                                    <button id='saveMangaProfileBtn' type='button'>Save Current Profile</button>
+                                    <button id='resetMangaProfileBtn' type='button'>Reset Manga Profile</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>ComicInfo.xml / Metadata</div>
+                            <div class='comic-info-grid' id='comicInfoBox'>
+                                <div class='page-bookmark-empty'>Metadata belum tersedia.</div>
+                            </div>
+                        </div>
+
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Page Bookmarks</div>
+                            <div class='page-bookmark-list' id='pageBookmarkList'>
+                                <span class='page-bookmark-empty'>Belum ada page bookmark.</span>
+                            </div>
+                        </div>
+
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Chapter Navigation</div>
+                            <div class='settings-action-grid'>
+                                <button id='prevChapterBtn' type='button'>Previous Chapter</button>
+                                <button id='nextChapterBtn' type='button'>Next Chapter</button>
+                                <button id='pageManagerBtn' type='button'>Page Manager</button>
+                                <button id='openLibraryHomeBtn' type='button'>Open Library Shelf</button>
+                            </div>
+                        </div>
+                        <div class='setting-section'>
+                            <div class='setting-section-title'>Storage Manager</div>
+                            <div class='storage-summary'>
+                                <div class='storage-summary-top'>
+                                    <strong id='storageUsageValue'>—</strong>
+                                    <span id='storageQuotaValue'>Browser storage</span>
+                                </div>
+                                <div class='storage-meter'><span id='storageMeterFill'></span></div>
+                                <div class='storage-sub' id='storageReaderValue'>
+                                    Mengira cache Kirin Library...
+                                </div>
+                            </div>
+                            <div class='settings-action-grid' style='margin-top:8px'>
+                                <button id='refreshStorageBtn' type='button'>Refresh Storage</button>
+                                <button class='danger' id='removeAllCachedBtn' type='button'>Remove All Cached Files</button>
+                            </div>
+                            <div class='storage-list' id='storageList'></div>
+                        </div>
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='advanced'>
+                        <div class='setting-section'><div class='setting-section-title'>Reader Information</div><div class='file-info-box' id='fileInfoBox'>Belum ada sumber dibuka.</div></div>
+                        <div class='setting-section'><div class='settings-action-grid'>
+                            <button id='exportHistoryBtn' type='button'>Export History</button><button id='importHistoryBtn' type='button'>Import History</button>
+                            <button class='danger' id='clearCacheBtn' type='button'>Clear Library Cache</button><button class='danger' id='resetSettingsBtn' type='button'>Reset Settings</button>
+                        </div><input accept='.json,application/json' id='historyImportInput' style='display:none' type='file'></div>
+                    </section>
+
+                    <section class='settings-tab' data-settings-panel='about'><div class='setting-section'><div class='setting-section-title'>Kirin Manga Reader</div><div class='settings-note'>Version 6.2 • Manga Info Gateway Edition.<br><br>Local Reader membaca CBZ/ZIP/PDF dari device dengan lazy page rendering. Link Reader membaca direct archive, image URL atau JSON manga berasaskan senarai image URL. Setting dan progress disimpan dalam browser.</div></div></section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <aside class='reader-panel thumb-panel' id='thumbPanel'>
+        <div class='reader-panel-head'>
+            <strong>Page Navigator</strong>
+            <button class='reader-panel-close' id='thumbClose' type='button'>&#215;</button>
+        </div>
+        <div class='reader-panel-body'>
+            <div class='thumb-grid' id='thumbGrid'></div>
+        </div>
+    </aside>
+
+    <!-- PAGE MANAGER -->
+    <div class='v5-overlay' id='pageManagerOverlay'>
+        <div class='v5-modal'>
+            <div class='v5-modal-head'>
+                <strong>Page Manager</strong>
+                <button class='v5-modal-close' id='pageManagerClose' type='button'>&#215;</button>
+            </div>
+            <div class='v5-modal-body'>
+                <div class='settings-note' style='margin-bottom:9px'>
+                    Drag page untuk ubah urutan, atau guna anak panah. Perubahan disimpan per manga.
+                </div>
+                <div class='page-manager-list' id='pageManagerList'></div>
+            </div>
+            <div class='v5-modal-footer'>
+                <button id='pageManagerReset' type='button'>Reset Order</button>
+                <button id='pageManagerCancel' type='button'>Cancel</button>
+                <button class='primary' id='pageManagerApply' type='button'>Apply Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAPTER END -->
+    <div class='v5-overlay' id='chapterEndOverlay'>
+        <div class='chapter-end-card'>
+            <div class='chapter-end-icon'>&#10003;</div>
+            <h3>Chapter selesai</h3>
+            <p id='chapterEndText'>Kau sudah sampai ke halaman terakhir.</p>
+            <div class='chapter-end-actions'>
+                <button id='chapterEndPrev' type='button'>Previous Chapter</button>
+                <button id='chapterEndHome' type='button'>Back Home</button>
+                <button id='chapterEndClose' type='button'>Close</button>
+                <button class='primary' id='chapterEndNext' type='button'>Next Chapter</button>
+            </div>
+        </div>
+    </div>
+
+    <div class='touch-zone-layer' id='touchZoneLayer'>
+        <button class='touch-zone prev' id='touchZonePrev' aria-label='Previous page' type='button'>Previous</button>
+        <button class='touch-zone center' id='touchZoneCenter' aria-label='Toggle reader UI' type='button'>UI</button>
+        <button class='touch-zone next' id='touchZoneNext' aria-label='Next page' type='button'>Next</button>
+    </div>
+
+    <!-- MANGA INFO GATEWAY -->
+    <section class='manga-info-screen' id='mangaInfoScreen'>
+        <header class='manga-info-header'>
+            <button class='manga-info-back' id='mangaInfoBack' title='Back' type='button'>&#8249;</button>
+            <div class='manga-info-header-copy'>
+                <strong>Manga Info</strong>
+                <span>Semak info manga sebelum masuk reader</span>
+            </div>
+            <span class='manga-info-source-badge' id='mangaInfoSource'>LOCAL</span>
+        </header>
+
+        <div class='manga-info-scroll' id='mangaInfoScroll'>
+            <div class='manga-info-layout'>
+                <aside class='manga-info-cover-column'>
+                    <div class='manga-info-cover' id='mangaInfoCover'>K</div>
+                    <div class='manga-info-progress-card'>
+                        <div class='manga-info-progress-head'>
+                            <span id='mangaInfoProgressLabel'>Belum dibaca</span>
+                            <strong id='mangaInfoProgressPercent'>0%</strong>
+                        </div>
+                        <div class='manga-info-progress-bar'>
+                            <span id='mangaInfoProgressBar'></span>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class='manga-info-main'>
+                    <div class='manga-info-kicker' id='mangaInfoChips'></div>
+                    <h1 class='manga-info-title' id='mangaInfoTitle'>Manga</h1>
+                    <div class='manga-info-series' id='mangaInfoSeries'>Kirin Manga Reader</div>
+
+                    <div class='manga-info-summary empty' id='mangaInfoSummary'>
+                        Tiada ringkasan tersedia untuk manga ini.
+                    </div>
+
+                    <section class='manga-info-section'>
+                        <div class='manga-info-section-title'>Details</div>
+                        <div class='manga-info-meta-grid' id='mangaInfoMetaGrid'></div>
+                    </section>
+
+                    <section class='manga-info-section' id='mangaInfoSourceSection'>
+                        <div class='manga-info-section-title'>Source</div>
+                        <div class='manga-info-url' id='mangaInfoSourceText'></div>
+                    </section>
+
+                    <div class='manga-info-error' id='mangaInfoError'></div>
+                </main>
+            </div>
+        </div>
+
+        <footer class='manga-info-footer'>
+            <div class='manga-info-footer-inner'>
+                <div class='manga-info-read-copy'>
+                    <b id='mangaInfoFooterTitle'>Manga</b>
+                    <span id='mangaInfoFooterMeta'>Ready to read</span>
+                </div>
+                <button class='manga-info-action' id='mangaInfoCancel' type='button'>BACK</button>
+                <button class='manga-info-action primary' id='mangaInfoRead' type='button'>READ NOW</button>
+            </div>
+        </footer>
+    </section>
+
+    <div class='reader-toast-wrap' id='readerToastWrap'></div>
+
+    <div class='global-drop-overlay' id='globalDropOverlay'>
+        <div class='global-drop-card'>
+            <b>Lepaskan fail manga di sini</b>
+            <span>.CBZ / .ZIP / .PDF</span>
+        </div>
+    </div>
+
+<footer class='site-footer'>
+        &#169; <span id='currentYear'></span> Kirin Manga Reader. Hak cipta terpelihara.
     </footer>
-
-    <!-- Fail Logik JavaScript -->
-    <script src="scripts.js"></script>
 </body>
 </html>

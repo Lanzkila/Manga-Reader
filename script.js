@@ -229,7 +229,7 @@
             readingDirection = prefs.direction === 'ltr' ? 'ltr' : 'rtl';
             doublePage = !!prefs.doublePage;
             brightness = clamp(Number(prefs.brightness || 100), 50, 130);
-            readerBg = ['#000000','#161616','#201b16'].includes(prefs.readerBg) ? prefs.readerBg : '#000000';
+            readerBg = ['#000000','#161616','#201b16','#101823','#0b1324'].includes(prefs.readerBg) ? prefs.readerBg : '#000000';
             autoScrollSpeed = clamp(Number(prefs.autoScrollSpeed || 70), 20, 180);
         }
 
@@ -310,7 +310,7 @@
                 readingDirection = p.direction === 'ltr' ? 'ltr' : 'rtl';
                 doublePage = !!p.doublePage;
                 brightness = clamp(Number(p.brightness || brightness), 50, 130);
-                readerBg = ['#000000','#161616','#201b16'].includes(p.readerBg) ? p.readerBg : readerBg;
+                readerBg = ['#000000','#161616','#201b16','#101823','#0b1324'].includes(p.readerBg) ? p.readerBg : readerBg;
                 applyPrefsToUI();
                 toast(`Resume halaman ${activePageIndex + 1}`);
             } else {
@@ -397,6 +397,12 @@
             return `${Math.floor(months / 12)} tahun lalu`;
         }
 
+
+        function v639SetTrackEmptyState(track, empty) {
+            if (!track) return;
+            track.classList.toggle('track-empty', !!empty);
+        }
+
         function loadRecentReads() {
             const recents = readRecents();
             recentList.classList.add('library-horizontal-track');
@@ -405,11 +411,13 @@
             if (recentCount) recentCount.textContent = String(recents.length);
 
             if (!recents.length) {
+                v639SetTrackEmptyState(recentList, true);
                 recentList.innerHTML =
                     '<div class="home-data-empty">Belum ada Recent Read. Buka CBZ, ZIP atau PDF untuk mula.</div>';
                 return;
             }
 
+            v639SetTrackEmptyState(recentList, false);
             recentList.innerHTML = '';
 
             recents.forEach(data => {
@@ -1209,7 +1217,7 @@
             stopAutoScroll();
             closePanels();
             pageSelector.classList.remove('active');
-            viewer.style.setProperty('display', 'none', 'important');
+            viewer.style.display = 'none';
             setup.style.display = 'flex';
             topControls.style.display = 'none';
             readerProgress.classList.remove('active');
@@ -1220,7 +1228,7 @@
 
         function v3EnterReader() {
             setup.style.display = 'none';
-            viewer.style.setProperty('display', 'flex', 'important');
+            viewer.style.display = 'flex';
             topControls.style.display = 'flex';
             readerProgress.classList.add('active');
             v3UpdateSelector();
@@ -1466,11 +1474,13 @@
             if (historyCount) historyCount.textContent = String(list.length);
 
             if (!list.length) {
+                v639SetTrackEmptyState(linkHistoryBox, true);
                 linkHistoryBox.innerHTML =
                     '<div class="home-data-empty">Belum ada History. Buka manga melalui Link Reader untuk mula.</div>';
                 return;
             }
 
+            v639SetTrackEmptyState(linkHistoryBox, false);
             linkHistoryBox.innerHTML = list.slice(0, 8).map((item, index) => `
                 <div class="link-history-item" data-link-history="${index}">
                     <div class="link-history-thumb">
@@ -1697,7 +1707,7 @@
         setLibraryTab('recent');
 
         v3LoadPrefs(); v3ApplyPrefs(); v3RenderLinkHistory();
-        viewer.style.setProperty('display', 'none', 'important');
+        viewer.style.display = 'none';
         setup.style.display = 'flex';
 
         const dropArea = document.getElementById('dropArea');
@@ -2259,7 +2269,7 @@
                 status.textContent = `Gagal membuka fail: ${err.message}`;
                 if (!totalPages) {
                     setup.style.display = 'flex';
-                    viewer.style.setProperty('display', 'none', 'important');
+                    viewer.style.display = 'none';
                 }
             }
         };
@@ -4123,7 +4133,7 @@
             v5Contrast = clamp(Number(profile.contrast || v5Contrast), 60, 160);
             v5Invert = !!profile.invert;
 
-            if (['#000000','#161616','#201b16','#101823'].includes(profile.readerBg)) {
+            if (['#000000','#161616','#201b16','#101823','#0b1324'].includes(profile.readerBg)) {
                 readerBg = profile.readerBg;
             }
 
@@ -4681,6 +4691,7 @@
                     <div class="home-mini-info">
                         <div class="home-mini-title">${escapeHtml(item.title || item.name)}</div>
                         <div class="home-mini-meta">${progress}% • ${escapeHtml(item.series || 'Library')}${item.chapter ? ` • Ch ${escapeHtml(item.chapter)}` : ''}</div>
+                        <div class="home-mini-added">${item.addedAt ? escapeHtml(formatTimeAgo(item.addedAt)) : 'Recently added'}</div>
                     </div>
                 </article>`;
         }
@@ -5150,7 +5161,7 @@
         let v81HomePending = false;
         let v81HomeRenderRunning = false;
 
-        const v81HeavyRenderHomeDashboard = v7RenderHomeDashboard;
+        let v81HeavyRenderHomeDashboard = v7RenderHomeDashboard;
 
         function v81ScheduleHomeDashboard() {
             if (setup.style.display === 'none') return;
@@ -7292,6 +7303,1191 @@
                 v623SyncSelectorHandle();
             }
         });
+
+
+        /* =====================================================
+           WEBTOON FLOATING PAGE INDICATOR
+           ===================================================== */
+        const webtoonPageFloat = document.getElementById('webtoonPageFloat');
+        const webtoonPageCurrent = document.getElementById('webtoonPageCurrent');
+        const webtoonPageTotal = document.getElementById('webtoonPageTotal');
+        const webtoonPageProgress = document.getElementById('webtoonPageProgress');
+        let webtoonFloatHideTimer = 0;
+
+        function updateWebtoonPageFloat() {
+            const enabled = !!v5Webtoon && viewer.classList.contains('webtoon-mode') && totalPages > 0 && setup.style.display === 'none';
+            webtoonPageFloat.classList.toggle('active', enabled);
+            webtoonPageFloat.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+            if (!enabled) { webtoonPageFloat.classList.remove('peek'); return; }
+            const current = clamp(Number(activePageIndex || 0) + 1, 1, Math.max(1,totalPages));
+            webtoonPageCurrent.textContent = String(current);
+            webtoonPageTotal.textContent = String(totalPages);
+            webtoonPageProgress.style.width = `${Math.min(100,(current/totalPages)*100)}%`;
+        }
+
+        function peekWebtoonPageFloat() {
+            updateWebtoonPageFloat();
+            if (!v5Webtoon || !viewer.classList.contains('webtoon-mode')) return;
+            if (window.matchMedia('(max-width: 999px)').matches) {
+                webtoonPageFloat.classList.add('peek');
+                clearTimeout(webtoonFloatHideTimer);
+                webtoonFloatHideTimer=setTimeout(()=>webtoonPageFloat.classList.remove('peek'),1050);
+            }
+        }
+
+        const webtoonOldUpdatePageIndicator = updatePageIndicator;
+        updatePageIndicator = function() {
+            const result = webtoonOldUpdatePageIndicator();
+            updateWebtoonPageFloat();
+            return result;
+        };
+
+        modeWebtoonBtn.addEventListener('click',()=>requestAnimationFrame(()=>{updateWebtoonPageFloat();peekWebtoonPageFloat();}));
+        modeListBtn.addEventListener('click',()=>requestAnimationFrame(updateWebtoonPageFloat));
+        modeBookBtn.addEventListener('click',()=>requestAnimationFrame(updateWebtoonPageFloat));
+        window.addEventListener('scroll',()=>{ if(v5Webtoon && viewer.classList.contains('webtoon-mode')) peekWebtoonPageFloat(); },{passive:true});
+        viewer.addEventListener('pointerdown',()=>{ if(v5Webtoon && viewer.classList.contains('webtoon-mode')) peekWebtoonPageFloat(); },{passive:true});
+        window.addEventListener('resize',()=>{ updateWebtoonPageFloat(); if(v5Webtoon) peekWebtoonPageFloat(); },{passive:true});
+        requestAnimationFrame(updateWebtoonPageFloat);
+
+
+        /* =====================================================
+           v6.2.5 — CANONICAL WEBTOON MODE FIX
+           Clean Book setMode('list') resets v5Webtoon, so Webtoon must
+           restore its own state AFTER list mode is entered.
+           ===================================================== */
+
+        function isWebtoonModeActive() {
+            return viewer.classList.contains('webtoon-mode');
+        }
+
+        /* Replace Webtoon toggle with a final canonical implementation. */
+        v5SetWebtoon = function(enabled) {
+            const turnOn = !!enabled;
+
+            if (!turnOn) {
+                v5Webtoon = false;
+                viewer.classList.remove('webtoon-mode');
+                modeWebtoonBtn.classList.remove('active');
+                modeListBtn.classList.toggle('active', currentMode === 'list');
+                updateWebtoonPageFloat();
+                return;
+            }
+
+            /* First enter the clean LIST engine. This temporarily clears
+               webtoon state inside the final setMode wrapper. */
+            setMode('list');
+
+            /* Now restore the authoritative Webtoon state. */
+            v5Webtoon = true;
+            currentMode = 'list';
+
+            viewer.classList.add('webtoon-mode');
+            viewer.classList.remove(
+                'book-mode',
+                'double-page',
+                'direction-rtl',
+                'direction-ltr'
+            );
+
+            modeWebtoonBtn.classList.add('active');
+            modeListBtn.classList.remove('active');
+            modeBookBtn.classList.remove('active');
+
+            navPrev.style.display = 'none';
+            navNext.style.display = 'none';
+
+            stopAutoScroll?.();
+
+            /* Webtoon keeps the page selector closed so it never overlays
+               the long strip. */
+            if (typeof v623CloseSelector === 'function') {
+                v623CloseSelector();
+            }
+
+            requestAnimationFrame(() => {
+                const page =
+                    viewer.querySelector(
+                        `img[data-index="${activePageIndex}"]`
+                    );
+
+                page?.scrollIntoView({
+                    block: 'start'
+                });
+
+                updatePageIndicator();
+                updateReaderProgress();
+                updateWebtoonPageFloat();
+                peekWebtoonPageFloat();
+
+                /* Save per-manga profile after Webtoon flag is truly active. */
+                v6ScheduleProfileSave?.();
+            });
+        };
+
+        modeWebtoonBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            v5SetWebtoon(
+                !isWebtoonModeActive()
+            );
+        };
+
+        /* Rebuild floating counter so the visible CSS class is authoritative.
+           This survives old state variables getting changed by other addons. */
+        updateWebtoonPageFloat = function() {
+            const enabled =
+                isWebtoonModeActive() &&
+                totalPages > 0 &&
+                setup.style.display === 'none';
+
+            webtoonPageFloat.classList.toggle(
+                'active',
+                enabled
+            );
+
+            webtoonPageFloat.setAttribute(
+                'aria-hidden',
+                enabled ? 'false' : 'true'
+            );
+
+            if (!enabled) {
+                webtoonPageFloat.classList.remove('peek');
+                return;
+            }
+
+            const current = clamp(
+                Number(activePageIndex || 0) + 1,
+                1,
+                Math.max(1, totalPages)
+            );
+
+            webtoonPageCurrent.textContent =
+                String(current);
+
+            webtoonPageTotal.textContent =
+                String(totalPages);
+
+            webtoonPageProgress.style.width =
+                `${Math.min(
+                    100,
+                    (current / Math.max(1,totalPages)) * 100
+                )}%`;
+        };
+
+        peekWebtoonPageFloat = function() {
+            updateWebtoonPageFloat();
+
+            if (!isWebtoonModeActive()) {
+                return;
+            }
+
+            if (
+                window.matchMedia(
+                    '(max-width: 999px)'
+                ).matches
+            ) {
+                webtoonPageFloat.classList.add('peek');
+
+                clearTimeout(webtoonFloatHideTimer);
+                webtoonFloatHideTimer =
+                    setTimeout(
+                        () =>
+                            webtoonPageFloat.classList.remove(
+                                'peek'
+                            ),
+                        1350
+                    );
+            }
+        };
+
+        /* Old scroll listener checked v5Webtoon and could miss Webtoon.
+           This final listener checks the actual class. */
+        let v625WebtoonScrollRaf = 0;
+
+        window.addEventListener(
+            'scroll',
+            () => {
+                if (!isWebtoonModeActive()) return;
+
+                if (v625WebtoonScrollRaf) return;
+
+                v625WebtoonScrollRaf =
+                    requestAnimationFrame(() => {
+                        v625WebtoonScrollRaf = 0;
+                        updateWebtoonPageFloat();
+
+                        if (
+                            window.matchMedia(
+                                '(max-width: 999px)'
+                            ).matches
+                        ) {
+                            peekWebtoonPageFloat();
+                        }
+                    });
+            },
+            {passive:true}
+        );
+
+        /* When switching to Scroll/Book, make sure Webtoon state is cleared. */
+        modeListBtn.addEventListener('click', () => {
+            requestAnimationFrame(() => {
+                if (
+                    !modeWebtoonBtn.classList.contains('active')
+                ) {
+                    v5Webtoon = false;
+                    viewer.classList.remove('webtoon-mode');
+                    updateWebtoonPageFloat();
+                }
+            });
+        });
+
+        modeBookBtn.addEventListener('click', () => {
+            v5Webtoon = false;
+            viewer.classList.remove('webtoon-mode');
+            updateWebtoonPageFloat();
+        });
+
+        /* If profile restoration already left the class on, normalize flag. */
+        requestAnimationFrame(() => {
+            if (isWebtoonModeActive()) {
+                v5Webtoon = true;
+                modeWebtoonBtn.classList.add('active');
+                modeListBtn.classList.remove('active');
+                modeBookBtn.classList.remove('active');
+            }
+            updateWebtoonPageFloat();
+        });
+
+
+        /* =====================================================
+           v6.2.6 — CANONICAL TOOLS OPEN/CLOSE
+           Fix stale onclick references that left body overflow locked.
+           ===================================================== */
+
+        function v626OtherBlockingOverlayOpen() {
+            return !!(
+                mangaInfoScreen?.classList.contains('open') ||
+                pageManagerOverlay?.classList.contains('open') ||
+                chapterEndOverlay?.classList.contains('open')
+            );
+        }
+
+        function v626ReleaseBodyLock() {
+            document.body.classList.remove('v626-tools-open');
+
+            /*
+             * Only release inline overflow if no other full-screen modal
+             * still needs the page locked.
+             */
+            if (!v626OtherBlockingOverlayOpen()) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function v626ClosePanelsFinal() {
+            toolsPanel.classList.remove('open');
+            thumbPanel.classList.remove('open');
+
+            toolsBtn.classList.remove('active');
+            thumbBtn.classList.remove('active');
+
+            document.body.classList.remove('v626-tools-open');
+
+            /* Clear focus so arrow keys return to the reader immediately. */
+            const active = document.activeElement;
+            if (
+                active &&
+                (
+                    toolsPanel.contains(active) ||
+                    thumbPanel.contains(active) ||
+                    active === toolsBtn ||
+                    active === thumbBtn
+                )
+            ) {
+                active.blur();
+            }
+
+            v626ReleaseBodyLock();
+
+            /* Normalize hidden overlays after the paint frame as well. */
+            requestAnimationFrame(() => {
+                if (!toolsPanel.classList.contains('open')) {
+                    toolsPanel.style.pointerEvents = '';
+                }
+
+                if (!thumbPanel.classList.contains('open')) {
+                    thumbPanel.style.pointerEvents = '';
+                }
+
+                v626ReleaseBodyLock();
+            });
+        }
+
+        function v626OpenToolsFinal() {
+            /* Close page selector first so two UI layers never overlap. */
+            if (typeof v623CloseSelector === 'function') {
+                v623CloseSelector();
+            }
+
+            thumbPanel.classList.remove('open');
+            thumbBtn.classList.remove('active');
+
+            toolsPanel.classList.add('open');
+            toolsBtn.classList.add('active');
+
+            document.body.classList.add('v626-tools-open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function v626OpenThumbFinal() {
+            if (!totalPages) return;
+
+            if (typeof v623CloseSelector === 'function') {
+                v623CloseSelector();
+            }
+
+            toolsPanel.classList.remove('open');
+            toolsBtn.classList.remove('active');
+
+            thumbPanel.classList.add('open');
+            thumbBtn.classList.add('active');
+
+            document.body.classList.add('v626-tools-open');
+            document.body.style.overflow = 'hidden';
+
+            updateThumbnailsActive?.();
+
+            requestAnimationFrame(() => {
+                thumbGrid
+                    .querySelector('.thumb-item.active')
+                    ?.scrollIntoView({block:'center'});
+            });
+        }
+
+        /* Replace globals so inline overlay click also gets final cleanup. */
+        closePanels = v626ClosePanelsFinal;
+        openToolsPanel = v626OpenToolsFinal;
+        openThumbPanel = v626OpenThumbFinal;
+
+        /* IMPORTANT: rebind controls AFTER replacing the functions.
+           Earlier toolsClose.onclick captured the old function object. */
+        toolsBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (toolsPanel.classList.contains('open')) {
+                v626ClosePanelsFinal();
+            } else {
+                v626OpenToolsFinal();
+            }
+
+            toolsBtn.blur();
+        };
+
+        thumbBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (thumbPanel.classList.contains('open')) {
+                v626ClosePanelsFinal();
+            } else {
+                v626OpenThumbFinal();
+            }
+
+            thumbBtn.blur();
+        };
+
+        toolsClose.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            v626ClosePanelsFinal();
+        };
+
+        thumbClose.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+            v626ClosePanelsFinal();
+        };
+
+        /* Clicking the dark backdrop closes Tools and fully unlocks reader. */
+        toolsPanel.onclick = event => {
+            if (event.target === toolsPanel) {
+                event.preventDefault();
+                v626ClosePanelsFinal();
+            }
+        };
+
+        /* Escape always gets out of Tools/Pages before Book keyboard routing. */
+        window.addEventListener(
+            'keydown',
+            event => {
+                if (
+                    event.key !== 'Escape' ||
+                    (
+                        !toolsPanel.classList.contains('open') &&
+                        !thumbPanel.classList.contains('open')
+                    )
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                v626ClosePanelsFinal();
+            },
+            true
+        );
+
+        /* Safety recovery:
+           if an older handler visually closed Tools but forgot body unlock,
+           release it as soon as the overlay state is no longer open. */
+        const v626OverlayObserver = new MutationObserver(() => {
+            if (
+                !toolsPanel.classList.contains('open') &&
+                !thumbPanel.classList.contains('open')
+            ) {
+                v626ReleaseBodyLock();
+            }
+        });
+
+        v626OverlayObserver.observe(
+            toolsPanel,
+            {attributes:true, attributeFilter:['class']}
+        );
+
+        v626OverlayObserver.observe(
+            thumbPanel,
+            {attributes:true, attributeFilter:['class']}
+        );
+
+        /* Normalize stale state when this build first loads. */
+        requestAnimationFrame(() => {
+            if (
+                !toolsPanel.classList.contains('open') &&
+                !thumbPanel.classList.contains('open')
+            ) {
+                v626ReleaseBodyLock();
+            }
+        });
+
+
+        /* =====================================================
+           v6.3.0 — HOME HEADER INFO + APP THEME
+           ===================================================== */
+
+        const V630_UI_THEME_KEY = 'kirin_ui_theme_v630';
+
+        const homeHeaderInfo =
+            document.getElementById('homeHeaderInfo');
+        const homeHeaderContinue =
+            document.getElementById('homeHeaderContinue');
+        const homeHeaderCover =
+            document.getElementById('homeHeaderCover');
+        const homeHeaderTitle =
+            document.getElementById('homeHeaderTitle');
+        const homeHeaderMeta =
+            document.getElementById('homeHeaderMeta');
+        const homeHeaderProgress =
+            document.getElementById('homeHeaderProgress');
+
+        const homeHeaderLibraryStat =
+            document.getElementById('homeHeaderLibraryStat');
+        const homeHeaderReadingStat =
+            document.getElementById('homeHeaderReadingStat');
+        const homeHeaderCompletedStat =
+            document.getElementById('homeHeaderCompletedStat');
+
+        const homeHeaderLibraryCount =
+            document.getElementById('homeHeaderLibraryCount');
+        const homeHeaderReadingCount =
+            document.getElementById('homeHeaderReadingCount');
+        const homeHeaderCompletedCount =
+            document.getElementById('homeHeaderCompletedCount');
+
+        const homeHeaderSearchBtn =
+            document.getElementById('homeHeaderSearchBtn');
+        const homeHeaderLibraryBtn =
+            document.getElementById('homeHeaderLibraryBtn');
+        const homeHeaderThemeBtn =
+            document.getElementById('homeHeaderThemeBtn');
+
+        const uiThemeGraphiteBtn =
+            document.getElementById('uiThemeGraphiteBtn');
+        const uiThemeSapphireBtn =
+            document.getElementById('uiThemeSapphireBtn');
+
+        let v630UITheme =
+            localStorage.getItem(V630_UI_THEME_KEY) ||
+            'sapphire';
+
+        function v630ApplyUITheme(theme, save = true) {
+            v630UITheme =
+                theme === 'graphite'
+                    ? 'graphite'
+                    : 'sapphire';
+
+            document.body.classList.toggle(
+                'ui-midnight-sapphire',
+                v630UITheme === 'sapphire'
+            );
+
+            uiThemeGraphiteBtn?.classList.toggle(
+                'active',
+                v630UITheme === 'graphite'
+            );
+
+            uiThemeSapphireBtn?.classList.toggle(
+                'active',
+                v630UITheme === 'sapphire'
+            );
+
+            homeHeaderThemeBtn?.classList.toggle(
+                'active',
+                v630UITheme === 'sapphire'
+            );
+
+            homeHeaderThemeBtn.title =
+                v630UITheme === 'sapphire'
+                    ? 'Theme: Midnight Sapphire'
+                    : 'Theme: Graphite';
+
+            if (save) {
+                localStorage.setItem(
+                    V630_UI_THEME_KEY,
+                    v630UITheme
+                );
+            }
+        }
+
+        uiThemeGraphiteBtn.onclick = () =>
+            v630ApplyUITheme('graphite');
+
+        uiThemeSapphireBtn.onclick = () =>
+            v630ApplyUITheme('sapphire');
+
+        homeHeaderThemeBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            v630ApplyUITheme(
+                v630UITheme === 'sapphire'
+                    ? 'graphite'
+                    : 'sapphire'
+            );
+
+            homeHeaderThemeBtn.blur();
+        };
+
+        function v630HomeVisible() {
+            return (
+                setup.style.display !== 'none' &&
+                !mangaInfoScreen?.classList.contains('open')
+            );
+        }
+
+        function v630HeaderCounts() {
+            const items = v5ReadLibrary();
+
+            let reading = 0;
+            let completed = 0;
+
+            items.forEach(item => {
+                const state = v6ItemStatus(item);
+
+                if (state === 'completed') {
+                    completed++;
+                } else if (state === 'reading') {
+                    reading++;
+                }
+            });
+
+            return {
+                library: items.length,
+                reading,
+                completed
+            };
+        }
+
+        function v630RenderHomeHeader() {
+            const visible = v630HomeVisible();
+
+            homeHeaderInfo.classList.toggle(
+                'show',
+                visible
+            );
+
+            if (!visible) return;
+
+            const counts = v630HeaderCounts();
+
+            homeHeaderLibraryCount.textContent =
+                String(counts.library);
+            homeHeaderReadingCount.textContent =
+                String(counts.reading);
+            homeHeaderCompletedCount.textContent =
+                String(counts.completed);
+
+            const candidate = v7ContinueCandidate();
+
+            if (candidate) {
+                homeHeaderTitle.textContent =
+                    candidate.title || 'Continue Reading';
+
+                homeHeaderMeta.textContent =
+                    `Page ${candidate.page + 1} / ${candidate.pages} • ${candidate.percent}%`;
+
+                homeHeaderProgress.style.width =
+                    `${candidate.percent}%`;
+
+                homeHeaderCover.innerHTML =
+                    candidate.thumb
+                        ? `<img loading="lazy" decoding="async" src="${candidate.thumb}" alt="Cover"/>`
+                        : 'K';
+
+                homeHeaderContinue.disabled = false;
+                homeHeaderContinue.title = 'Continue Reading';
+            } else {
+                homeHeaderTitle.textContent =
+                    counts.library
+                        ? 'Choose a manga from Library'
+                        : 'Ready to read';
+
+                homeHeaderMeta.textContent =
+                    counts.library
+                        ? `${counts.library} manga in Library`
+                        : 'Local • Link • CBZ • ZIP • PDF';
+
+                homeHeaderProgress.style.width = '0%';
+                homeHeaderCover.innerHTML = 'K';
+                homeHeaderContinue.disabled = false;
+                homeHeaderContinue.title = 'Open Library';
+            }
+        }
+
+        homeHeaderContinue.onclick = async () => {
+            const candidate = v7ContinueCandidate();
+
+            if (candidate) {
+                v7ContinueTarget = candidate;
+                await v7OpenContinueTarget();
+                return;
+            }
+
+            setLibraryTab('library');
+            document
+                .querySelector('.reader-library-tabs')
+                ?.scrollIntoView({
+                    behavior:'smooth',
+                    block:'start'
+                });
+        };
+
+        function v630OpenLibrary(status = 'all') {
+            libraryStatusFilter.value = status;
+            librarySearch.value = '';
+            v5RenderLibrary();
+            setLibraryTab('library');
+
+            requestAnimationFrame(() => {
+                document
+                    .querySelector('.reader-library-tabs')
+                    ?.scrollIntoView({
+                        behavior:'smooth',
+                        block:'start'
+                    });
+            });
+        }
+
+        homeHeaderLibraryStat.onclick =
+            () => v630OpenLibrary('all');
+
+        homeHeaderReadingStat.onclick =
+            () => v630OpenLibrary('reading');
+
+        homeHeaderCompletedStat.onclick =
+            () => v630OpenLibrary('completed');
+
+        homeHeaderLibraryBtn.onclick =
+            () => v630OpenLibrary('all');
+
+        homeHeaderSearchBtn.onclick = () => {
+            if (
+                homeSearchSection.classList.contains(
+                    'v7-home-hidden'
+                )
+            ) {
+                v7HomePrefs.search = true;
+                v7SaveHomePrefs();
+                v7ApplyHomeToggleUI();
+                homeSearchSection.classList.remove(
+                    'v7-home-hidden'
+                );
+            }
+
+            requestAnimationFrame(() => {
+                homeSearchSection.scrollIntoView({
+                    behavior:'smooth',
+                    block:'center'
+                });
+
+                setTimeout(
+                    () => homeGlobalSearch.focus(),
+                    250
+                );
+            });
+        };
+
+        /*
+         * Header is homepage-only. Observe the existing setup visibility
+         * instead of wrapping reader engine functions again.
+         */
+        const v630HeaderObserver =
+            new MutationObserver(() => {
+                requestAnimationFrame(
+                    v630RenderHomeHeader
+                );
+            });
+
+        v630HeaderObserver.observe(
+            setup,
+            {
+                attributes:true,
+                attributeFilter:['style','class']
+            }
+        );
+
+        v630HeaderObserver.observe(
+            mangaInfoScreen,
+            {
+                attributes:true,
+                attributeFilter:['class']
+            }
+        );
+
+        /*
+         * Library/progress changes also refresh the header.
+         * Keep it lightweight: one frame only.
+         */
+        let v630HeaderFrame = 0;
+
+        function v630ScheduleHeaderRender() {
+            if (v630HeaderFrame) return;
+
+            v630HeaderFrame =
+                requestAnimationFrame(() => {
+                    v630HeaderFrame = 0;
+                    v630RenderHomeHeader();
+                });
+        }
+
+        const v630OldWriteLibrary = v5WriteLibrary;
+        v5WriteLibrary = function(items) {
+            const result =
+                v630OldWriteLibrary(items);
+
+            v630ScheduleHeaderRender();
+            return result;
+        };
+
+        window.addEventListener(
+            'storage',
+            v630ScheduleHeaderRender
+        );
+
+        /*
+         * Existing dashboard refresh is a good low-frequency sync point.
+         */
+        const v630OldHeavyHomeRender =
+            v81HeavyRenderHomeDashboard;
+
+        v81HeavyRenderHomeDashboard = function() {
+            const result =
+                v630OldHeavyHomeRender();
+
+            v630ScheduleHeaderRender();
+            return result;
+        };
+
+        /* Initial theme/header */
+        v630ApplyUITheme(
+            v630UITheme,
+            false
+        );
+
+        requestAnimationFrame(
+            v630RenderHomeHeader
+        );
+
+
+        /* =====================================================
+           v6.3.5 — CANONICAL THEME HEADER SYNC
+           ===================================================== */
+
+        const homeHeaderThemeChip =
+            document.getElementById('homeHeaderThemeChip');
+        const homeHeaderThemeText =
+            document.getElementById('homeHeaderThemeText');
+
+        function v635ThemeLabel() {
+            return v630UITheme === 'sapphire'
+                ? 'Midnight Sapphire'
+                : 'Graphite';
+        }
+
+        function v635SyncThemeHeader() {
+            const label = v635ThemeLabel();
+
+            if (homeHeaderThemeText) {
+                homeHeaderThemeText.textContent = label;
+            }
+
+            if (homeHeaderThemeChip) {
+                homeHeaderThemeChip.classList.toggle(
+                    'active',
+                    v630UITheme === 'sapphire'
+                );
+
+                homeHeaderThemeChip.title =
+                    `Current app theme: ${label}`;
+            }
+
+            if (homeHeaderThemeBtn) {
+                homeHeaderThemeBtn.title =
+                    `Toggle app theme • current: ${label}`;
+            }
+        }
+
+        /* Make the chip itself toggle theme too. */
+        homeHeaderThemeChip.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            v630ApplyUITheme(
+                v630UITheme === 'sapphire'
+                    ? 'graphite'
+                    : 'sapphire'
+            );
+
+            homeHeaderThemeChip.blur();
+        };
+
+        /* Wrap the app-theme setter so text/icon/chip stay synced. */
+        const v635OldApplyUITheme = v630ApplyUITheme;
+        v630ApplyUITheme = function(theme, save = true) {
+            const result = v635OldApplyUITheme(theme, save);
+            v635SyncThemeHeader();
+            return result;
+        };
+
+        /* Show header info reliably from the start of homepage load. */
+        const v635OldHomeVisible = v630HomeVisible;
+        v630HomeVisible = function() {
+            return (
+                v635OldHomeVisible() &&
+                !toolsPanel.classList.contains('open') &&
+                !thumbPanel.classList.contains('open')
+            );
+        };
+
+        function v635ForceInitialHeader() {
+            v630RenderHomeHeader();
+            v635SyncThemeHeader();
+        }
+
+        /* Sync after initial paint and after the dashboard finishes its first pass. */
+        requestAnimationFrame(v635ForceInitialHeader);
+        setTimeout(v635ForceInitialHeader, 120);
+        setTimeout(v635ForceInitialHeader, 500);
+
+        const v635OldInitialHomepageRender = v81InitialHomepageRender;
+        v81InitialHomepageRender = function() {
+            v635OldInitialHomepageRender();
+            requestAnimationFrame(v635ForceInitialHeader);
+        };
+
+        const v635OldHeavyRenderHomeDashboard = v81HeavyRenderHomeDashboard;
+        v81HeavyRenderHomeDashboard = function() {
+            const result = v635OldHeavyRenderHomeDashboard();
+            v635ForceInitialHeader();
+            return result;
+        };
+
+        v635SyncThemeHeader();
+
+
+        /* =====================================================
+           v6.3.6 — FINAL STARTUP HEADER SYNC
+           ===================================================== */
+
+        function v636SyncHeaderNow() {
+            const homepage =
+                setup.style.display !== 'none' &&
+                !mangaInfoScreen.classList.contains('open');
+
+            homeHeaderInfo.classList.toggle(
+                'show',
+                homepage
+            );
+
+            if (homepage) {
+                homeHeaderInfo.style.display = 'flex';
+                v630RenderHomeHeader();
+                v635SyncThemeHeader();
+            } else {
+                homeHeaderInfo.style.display = 'none';
+            }
+        }
+
+        /* Initial document paint */
+        v636SyncHeaderNow();
+
+        requestAnimationFrame(v636SyncHeaderNow);
+        setTimeout(v636SyncHeaderNow, 50);
+        setTimeout(v636SyncHeaderNow, 250);
+
+        /* Whenever reader/home state changes, force the correct header state. */
+        const v636HeaderStateObserver = new MutationObserver(
+            () => requestAnimationFrame(v636SyncHeaderNow)
+        );
+
+        v636HeaderStateObserver.observe(
+            setup,
+            {
+                attributes: true,
+                attributeFilter: ['style','class']
+            }
+        );
+
+        v636HeaderStateObserver.observe(
+            mangaInfoScreen,
+            {
+                attributes: true,
+                attributeFilter: ['class']
+            }
+        );
+
+
+        /* =====================================================
+           v6.3.7 — FINAL THEME POPUP / MULTI-THEME SYSTEM
+           ===================================================== */
+
+        const homeHeaderThemeWrap =
+            document.getElementById('homeHeaderThemeWrap');
+        const homeHeaderThemePopup =
+            document.getElementById('homeHeaderThemePopup');
+
+        const uiThemeEmeraldBtn =
+            document.getElementById('uiThemeEmeraldBtn');
+        const uiThemeCrimsonBtn =
+            document.getElementById('uiThemeCrimsonBtn');
+        const uiThemeAmethystBtn =
+            document.getElementById('uiThemeAmethystBtn');
+
+        const v637Themes = {
+            graphite: {
+                label: 'Graphite',
+                icon: '&#9681;',
+                bodyClass: 'ui-theme-graphite'
+            },
+            sapphire: {
+                label: 'Midnight Sapphire',
+                icon: '&#9670;',
+                bodyClass: 'ui-theme-sapphire'
+            },
+            emerald: {
+                label: 'Emerald Mist',
+                icon: '&#10022;',
+                bodyClass: 'ui-theme-emerald'
+            },
+            crimson: {
+                label: 'Crimson Night',
+                icon: '&#10039;',
+                bodyClass: 'ui-theme-crimson'
+            },
+            amethyst: {
+                label: 'Amethyst Dusk',
+                icon: '&#10023;',
+                bodyClass: 'ui-theme-amethyst'
+            }
+        };
+
+        function v637NormalizeTheme(theme) {
+            return v637Themes[theme] ? theme : 'graphite';
+        }
+
+        function v637CloseThemePopup() {
+            homeHeaderThemePopup?.classList.remove('open');
+        }
+
+        function v637OpenThemePopup() {
+            homeHeaderThemePopup?.classList.add('open');
+        }
+
+        function v637SyncThemeButtons() {
+            const current = v637NormalizeTheme(v630UITheme);
+
+            const buttons = {
+                graphite: uiThemeGraphiteBtn,
+                sapphire: uiThemeSapphireBtn,
+                emerald: uiThemeEmeraldBtn,
+                crimson: uiThemeCrimsonBtn,
+                amethyst: uiThemeAmethystBtn
+            };
+
+            Object.entries(buttons).forEach(([key, btn]) => {
+                btn?.classList.toggle('active', key === current);
+            });
+
+            homeHeaderThemePopup
+                ?.querySelectorAll('.home-header-theme-option')
+                .forEach(btn => {
+                    btn.classList.toggle(
+                        'active',
+                        btn.dataset.uiTheme === current
+                    );
+                });
+
+            const meta = v637Themes[current];
+
+            homeHeaderThemeBtn.dataset.uiTheme = current;
+            homeHeaderThemeBtn.innerHTML = meta.icon;
+            homeHeaderThemeBtn.title = `Theme: ${meta.label}`;
+
+            if (homeHeaderThemeText) {
+                homeHeaderThemeText.textContent = meta.label;
+            }
+        }
+
+        /* Final canonical app-theme setter */
+        v630ApplyUITheme = function(theme, save = true) {
+            const next = v637NormalizeTheme(theme);
+            v630UITheme = next;
+
+            Object.values(v637Themes).forEach(meta => {
+                document.body.classList.remove(meta.bodyClass);
+            });
+
+            document.body.classList.remove('ui-midnight-sapphire');
+            document.body.classList.add(v637Themes[next].bodyClass);
+
+            /* Backward compatibility for old sapphire-specific CSS */
+            if (next === 'sapphire') {
+                document.body.classList.add('ui-midnight-sapphire');
+            }
+
+            if (save) {
+                localStorage.setItem(
+                    V630_UI_THEME_KEY,
+                    next
+                );
+            }
+
+            v637SyncThemeButtons();
+        };
+
+        /* Keep old helper name alive, but sync new popup/icon system */
+        v635SyncThemeHeader = function() {
+            v637SyncThemeButtons();
+        };
+
+        uiThemeGraphiteBtn.onclick = () =>
+            v630ApplyUITheme('graphite');
+
+        uiThemeSapphireBtn.onclick = () =>
+            v630ApplyUITheme('sapphire');
+
+        uiThemeEmeraldBtn.onclick = () =>
+            v630ApplyUITheme('emerald');
+
+        uiThemeCrimsonBtn.onclick = () =>
+            v630ApplyUITheme('crimson');
+
+        uiThemeAmethystBtn.onclick = () =>
+            v630ApplyUITheme('amethyst');
+
+        homeHeaderThemeBtn.onclick = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (homeHeaderThemePopup.classList.contains('open')) {
+                v637CloseThemePopup();
+            } else {
+                v637OpenThemePopup();
+            }
+
+            homeHeaderThemeBtn.blur();
+        };
+
+        homeHeaderThemePopup
+            ?.querySelectorAll('.home-header-theme-option')
+            .forEach(btn => {
+                btn.onclick = event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const theme = btn.dataset.uiTheme;
+                    v630ApplyUITheme(theme);
+                    v637CloseThemePopup();
+                    v630RenderHomeHeader();
+                };
+            });
+
+        document.addEventListener('click', event => {
+            if (
+                homeHeaderThemeWrap &&
+                !homeHeaderThemeWrap.contains(event.target)
+            ) {
+                v637CloseThemePopup();
+            }
+        });
+
+        window.addEventListener(
+            'keydown',
+            event => {
+                if (event.key === 'Escape') {
+                    v637CloseThemePopup();
+                }
+            },
+            true
+        );
+
+        /* Initial canonical theme restore */
+        v630UITheme = v637NormalizeTheme(
+            localStorage.getItem(V630_UI_THEME_KEY) || v630UITheme
+        );
+
+        v630ApplyUITheme(v630UITheme, false);
+
+
+        /* =====================================================
+           v6.3.8 — FINAL HEADER VISIBILITY TUNE
+           Only the theme icon remains visible in the header utility area.
+           ===================================================== */
+
+        function v638ApplyHeaderThemeOnlyLayout() {
+            homeHeaderInfo?.classList.add('show');
+
+            if (homeHeaderContinue) homeHeaderContinue.style.display = 'none';
+            if (homeHeaderLibraryStat) homeHeaderLibraryStat.style.display = 'none';
+            if (homeHeaderReadingStat) homeHeaderReadingStat.style.display = 'none';
+            if (homeHeaderCompletedStat) homeHeaderCompletedStat.style.display = 'none';
+            if (homeHeaderSearchBtn) homeHeaderSearchBtn.style.display = 'none';
+            if (homeHeaderLibraryBtn) homeHeaderLibraryBtn.style.display = 'none';
+            if (homeHeaderThemeChip) homeHeaderThemeChip.style.display = 'none';
+            if (homeHeaderThemeWrap) homeHeaderThemeWrap.style.display = 'flex';
+        }
+
+        requestAnimationFrame(v638ApplyHeaderThemeOnlyLayout);
+        setTimeout(v638ApplyHeaderThemeOnlyLayout, 80);
+
+        const v638OldRenderHomeHeader = v630RenderHomeHeader;
+        v630RenderHomeHeader = function() {
+            const result = v638OldRenderHomeHeader();
+            v638ApplyHeaderThemeOnlyLayout();
+            return result;
+        };
 
         /* Init v6 */
         v6LoadGlobalAddonPrefs();

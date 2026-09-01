@@ -6390,4 +6390,411 @@
             }
         }
 
+
+        /* =====================================================
+           v6.4.2 — STRONG RECENT ROUND FIX (BLOGGER + GITHUB PAGES)
+           Force the Recent Read slot to visibly look rounded.
+           ===================================================== */
+
+        .library-tab-panel.active[data-library-panel='recent'],
+        .library-tab-panel[data-library-panel='recent'] {
+            position: relative !important;
+            width: 100% !important;
+            padding: 0 !important;
+            border: 1px solid #243140 !important;
+            border-radius: 18px !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.055), transparent 48%),
+                linear-gradient(145deg, rgba(10,14,20,.98), rgba(8,10,14,.98)) !important;
+            background-clip: padding-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent']::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            box-shadow: inset 0 0 0 1px rgba(138,180,248,.04);
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentContainer {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            border: 0 !important;
+            border-radius: inherit !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+            background: transparent !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 15px !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            box-sizing: border-box !important;
+            background: transparent !important;
+            clip-path: inset(0 round 15px);
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList.track-empty {
+            overflow: hidden !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty {
+            width: 100% !important;
+            min-height: 118px !important;
+            margin: 0 !important;
+            padding: 18px !important;
+            border: 1px dashed #29405a !important;
+            border-radius: 15px !important;
+            box-sizing: border-box !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.045), transparent 52%),
+                linear-gradient(145deg, rgba(8,12,17,.96), rgba(6,9,13,.96)) !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 15px);
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList .recent-item {
+            border-radius: 13px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 13px);
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList .recent-item-thumb,
+        .library-tab-panel[data-library-panel='recent'] #recentList .recent-item-cover {
+            border-radius: 10px !important;
+            overflow: hidden !important;
+        }
+
+        /* Match theme families */
+        body.ui-theme-graphite .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-sapphire .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-emerald .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-crimson .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-amethyst .library-tab-panel[data-library-panel='recent'] {
+            border-color: var(--app-border) !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.05), transparent 48%),
+                linear-gradient(145deg, var(--app-panel), var(--app-bg)) !important;
+        }
+
+        @media (max-width: 768px) {
+            .library-tab-panel.active[data-library-panel='recent'],
+            .library-tab-panel[data-library-panel='recent'] {
+                border-radius: 15px !important;
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentContainer {
+                padding: 8px !important;
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentList,
+            .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty {
+                border-radius: 12px !important;
+                clip-path: inset(0 round 12px);
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty {
+                min-height: 106px !important;
+                padding: 14px !important;
+            }
+        }
+
+
+        /* =====================================================
+           v6.4.3 — TRUE ROUNDED CORNERS (BLOGGER + GITHUB PAGES)
+           Force genuinely rounded visible corners for:
+           - Recent Read panel
+           - Library panel
+           - Series Overview
+           - Manga Shelf
+           ===================================================== */
+
+        /* Shared outer shell */
+        .library-tab-panels,
+        .library-tab-panel,
+        .library-tab-panel.active,
+        .reader-library-tabs {
+            box-sizing: border-box !important;
+        }
+
+        /* ---------------- RECENT READ PANEL ---------------- */
+        .library-tab-panel.active[data-library-panel='recent'],
+        .library-tab-panel[data-library-panel='recent'] {
+            position: relative !important;
+            width: 100% !important;
+            padding: 0 !important;
+            border: 1px solid #243140 !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+            clip-path: inset(0 round 20px) !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.055), transparent 48%),
+                linear-gradient(145deg, rgba(10,14,20,.98), rgba(8,10,14,.98)) !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentContainer {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 10px !important;
+            border: 0 !important;
+            border-radius: inherit !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 18px) !important;
+            background: transparent !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 16px !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            clip-path: inset(0 round 16px) !important;
+            background: transparent !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList.track-empty {
+            overflow: hidden !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty {
+            width: 100% !important;
+            min-height: 120px !important;
+            margin: 0 !important;
+            padding: 18px !important;
+            border: 1px dashed #29405a !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 16px) !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.045), transparent 52%),
+                linear-gradient(145deg, rgba(8,12,17,.96), rgba(6,9,13,.96)) !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='recent'] #recentList .recent-item {
+            border-radius: 14px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 14px) !important;
+        }
+
+        /* ---------------- LIBRARY PANEL ---------------- */
+        .library-tab-panel.active[data-library-panel='library'],
+        .library-tab-panel[data-library-panel='library'] {
+            position: relative !important;
+            width: min(940px, calc(100% - 12px)) !important;
+            max-width: 940px !important;
+            margin: 0 auto !important;
+            padding: 10px !important;
+            border: 1px solid #243140 !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+            clip-path: inset(0 round 20px) !important;
+            background:
+                radial-gradient(circle at 82% 0%, rgba(138,180,248,.05), transparent 34%),
+                linear-gradient(145deg, rgba(10,14,20,.98), rgba(8,10,14,.98)) !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='library'] .library-tools-row,
+        .library-tab-panel[data-library-panel='library'] .library-content-section {
+            width: 100% !important;
+            max-width: none !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='library'] .library-tools-row {
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 16px) !important;
+        }
+
+        .library-tab-panel[data-library-panel='library'] .library-content-section {
+            border-radius: 18px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 18px) !important;
+        }
+
+        .library-tab-panel[data-library-panel='library'] .library-content-head {
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+
+        .library-tab-panel[data-library-panel='library'] #seriesProgressStrip,
+        .library-tab-panel[data-library-panel='library'] #libraryShelf {
+            width: 100% !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 14px) !important;
+            box-sizing: border-box !important;
+        }
+
+        .library-tab-panel[data-library-panel='library'] .home-data-empty {
+            width: 100% !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 14px) !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Theme compatibility */
+        body.ui-theme-graphite .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-sapphire .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-emerald .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-crimson .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-amethyst .library-tab-panel[data-library-panel='recent'],
+        body.ui-theme-graphite .library-tab-panel[data-library-panel='library'],
+        body.ui-theme-sapphire .library-tab-panel[data-library-panel='library'],
+        body.ui-theme-emerald .library-tab-panel[data-library-panel='library'],
+        body.ui-theme-crimson .library-tab-panel[data-library-panel='library'],
+        body.ui-theme-amethyst .library-tab-panel[data-library-panel='library'] {
+            border-color: var(--app-border) !important;
+            background:
+                radial-gradient(circle at 82% 0%, rgba(138,180,248,.045), transparent 35%),
+                linear-gradient(145deg, var(--app-panel), var(--app-bg)) !important;
+        }
+
+        @media (max-width: 768px) {
+            .library-tab-panel.active[data-library-panel='recent'],
+            .library-tab-panel[data-library-panel='recent'],
+            .library-tab-panel.active[data-library-panel='library'],
+            .library-tab-panel[data-library-panel='library'] {
+                width: calc(100% - 4px) !important;
+                max-width: none !important;
+                padding: 8px !important;
+                border-radius: 16px !important;
+                clip-path: inset(0 round 16px) !important;
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentContainer {
+                padding: 8px !important;
+                clip-path: inset(0 round 14px) !important;
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentList,
+            .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty,
+            .library-tab-panel[data-library-panel='library'] .library-tools-row,
+            .library-tab-panel[data-library-panel='library'] .library-content-section,
+            .library-tab-panel[data-library-panel='library'] #seriesProgressStrip,
+            .library-tab-panel[data-library-panel='library'] #libraryShelf,
+            .library-tab-panel[data-library-panel='library'] .home-data-empty {
+                border-radius: 12px !important;
+                clip-path: inset(0 round 12px) !important;
+            }
+
+            .library-tab-panel[data-library-panel='recent'] #recentList.track-empty > .home-data-empty {
+                min-height: 106px !important;
+                padding: 14px !important;
+            }
+        }
+
+
+        /* =====================================================
+           v6.4.4 — VISIBLE OUTER ROUND FIX
+           The square-looking area came from the parent tab background.
+           Make parents transparent so the active rounded panel is visible.
+           Blogger + GitHub Pages safe.
+           ===================================================== */
+
+        .reader-library-tabs {
+            background: transparent !important;
+            border-left: 0 !important;
+            border-right: 0 !important;
+            border-bottom: 0 !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+        }
+
+        .library-tab-panels {
+            width: 100% !important;
+            padding: 2px !important;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Theme rules were painting a square background on this parent. */
+        body.ui-midnight-sapphire .reader-library-tabs,
+        body.ui-theme-graphite .reader-library-tabs,
+        body.ui-theme-sapphire .reader-library-tabs,
+        body.ui-theme-emerald .reader-library-tabs,
+        body.ui-theme-crimson .reader-library-tabs,
+        body.ui-theme-amethyst .reader-library-tabs {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* Make the actual active panels visually separate from the transparent parent. */
+        .library-tab-panel.active[data-library-panel='recent'],
+        .library-tab-panel.active[data-library-panel='history'],
+        .library-tab-panel.active[data-library-panel='library'],
+        .library-tab-panel.active[data-library-panel='sessions'] {
+            border-radius: 22px !important;
+            overflow: hidden !important;
+            clip-path: inset(0 round 22px) !important;
+            box-shadow:
+                0 8px 24px rgba(0,0,0,.22),
+                inset 0 0 0 1px rgba(255,255,255,.018) !important;
+        }
+
+        /* Recent / History / Sessions get their own proper shell when active. */
+        .library-tab-panel.active[data-library-panel='recent'],
+        .library-tab-panel.active[data-library-panel='history'],
+        .library-tab-panel.active[data-library-panel='sessions'] {
+            border: 1px solid #243140 !important;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(138,180,248,.05), transparent 48%),
+                linear-gradient(145deg, rgba(10,14,20,.98), rgba(8,10,14,.98)) !important;
+        }
+
+        /* Library already has its own content; keep the shell visibly rounded. */
+        .library-tab-panel.active[data-library-panel='library'] {
+            border: 1px solid #243140 !important;
+            background:
+                radial-gradient(circle at 82% 0%, rgba(138,180,248,.045), transparent 36%),
+                linear-gradient(145deg, rgba(10,14,20,.98), rgba(8,10,14,.98)) !important;
+        }
+
+        /* Add a small gap so the rounded edge is not touching the page edge. */
+        .library-tab-panel.active {
+            margin-top: 3px !important;
+            margin-bottom: 3px !important;
+        }
+
+        @media (max-width: 768px) {
+            .library-tab-panels {
+                padding: 1px !important;
+            }
+
+            .library-tab-panel.active[data-library-panel='recent'],
+            .library-tab-panel.active[data-library-panel='history'],
+            .library-tab-panel.active[data-library-panel='library'],
+            .library-tab-panel.active[data-library-panel='sessions'] {
+                border-radius: 17px !important;
+                clip-path: inset(0 round 17px) !important;
+            }
+        }
+
         .no-display { display: none !important; }
